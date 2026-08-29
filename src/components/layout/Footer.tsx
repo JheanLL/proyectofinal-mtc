@@ -68,11 +68,11 @@ export default function Footer() {
               <span className="font-extrabold text-lg text-white">MTC Perú</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Plataforma tecnológica promovida por el Ministerio de Transportes y Comunicaciones para incentivar el turismo local y el transporte ferroviario con rutas peatonales sostenibles de ida y vuelta.
+              Prototipo de software desarrollado para la práctica académica de Ingeniería de Software (CPIS Ingeniería de Sistemas) basado en el caso de estudio de transporte ferroviario y turismo a pie del MTC.
             </p>
             <div className="flex items-center gap-2 text-xs text-emerald-400">
               <ShieldCheck className="w-4 h-4" />
-              <span>Plataforma 100% Accesible & Verificada</span>
+              <span>Prototipo Académico Universitario</span>
             </div>
           </div>
 
@@ -150,9 +150,9 @@ export default function Footer() {
 
         {/* Bottom copyright */}
         <div className="border-t border-slate-800/80 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} Ministerio de Transportes y Comunicaciones (MTC) - Gobierno del Perú.</p>
+          <p>© {new Date().getFullYear()} Proyecto Académico: Caso "Zonas Turísticas MTC" - CPIS Ingeniería de Sistemas.</p>
           <p className="flex items-center gap-1">
-            Diseñado para la investigación y desarrollo de software web sostenible
+            Desarrollado para la práctica de investigación y diseño de software
           </p>
         </div>
       </div>

@@ -577,7 +577,7 @@ function PlanificadorContent() {
                 className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-xs font-bold px-7 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>Generar Informe Consolidado Oficial</span>
+                <span>Generar Informe Consolidado</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

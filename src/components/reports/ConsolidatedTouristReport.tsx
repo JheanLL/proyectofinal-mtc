@@ -199,7 +199,7 @@ export default function ConsolidatedTouristReport({
                 <div className="flex items-center gap-2">
                   <span className="text-red-700 font-black text-xl tracking-tight">MTC</span>
                   <span className="text-xs bg-slate-900 text-white px-2 py-0.5 rounded font-bold uppercase">
-                    Gobierno del Perú
+                    Caso de Estudio
                   </span>
                 </div>
                 <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
@@ -463,14 +463,14 @@ export default function ConsolidatedTouristReport({
           </div>
         </div>
 
-        {/* Security & Official Seal Footer */}
+        {/* Academic Seal Footer */}
         <div className="border-t border-slate-200 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-600" />
-            <span>Documento Oficial validado conforme a directivas del Ministerio de Transportes y Comunicaciones (MTC).</span>
+            <span>Prototipo de Software Académico generado para el caso 'Zonas Turísticas MTC' (CPIS Ingeniería de Sistemas).</span>
           </div>
           <div className="font-mono text-[10px] text-slate-400">
-            AUTENTICACIÓN: SHA256-MTC-PE-{codigoItinerario}
+            PROYECTO: MTC-TRAIN-{codigoItinerario}
           </div>
         </div>
       </div>

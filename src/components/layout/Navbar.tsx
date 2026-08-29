@@ -38,18 +38,18 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-2xs">
-      {/* Top Governmental Bar */}
+      {/* Top Academic Banner */}
       <div className="bg-slate-900 text-white text-[11px] py-1 px-4 sm:px-8 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+          <span className="inline-block w-2 h-2 rounded-full bg-red-500"></span>
           <span className="font-semibold text-slate-300">
-            Plataforma Oficial del Estado Peruano • MTC
+            Proyecto Universitario • Caso MTC Zonas Turísticas | CPIS Ingeniería de Sistemas
           </span>
         </div>
         <div className="hidden md:flex items-center gap-4 text-slate-400">
-          <span>Integración: <strong>SENAMHI</strong> | <strong>PeruRail</strong> | <strong>Travel Group Perú</strong></span>
+          <span>Fuentes integradas: <strong>SENAMHI</strong> | <strong>PeruRail</strong> | <strong>Travel Group Perú</strong></span>
           <span className="flex items-center gap-1 text-emerald-400">
-            <ShieldCheck className="w-3.5 h-3.5" /> Sistema Verificado
+            <ShieldCheck className="w-3.5 h-3.5" /> Prototipo Académico
           </span>
         </div>
       </div>

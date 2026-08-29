@@ -68,8 +68,8 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-950/80 border border-red-700/60 text-red-300 text-xs font-semibold backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-              <span>Iniciativa Oficial MTC • Turismo Ferroviario Sostenible</span>
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+              <span>Proyecto Universitario • Caso MTC Turismo Ferroviario y Peatonal</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
@@ -77,7 +77,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
-              Plataforma inteligente del Ministerio de Transportes y Comunicaciones. Conecta tus viajes en <strong>PeruRail</strong> con circuitos turísticos diseñados para realizarse <strong>exclusivamente a pie</strong> desde cada estación, con pronóstico climático de <strong>SENAMHI</strong> en tiempo real.
+              Plataforma desarrollada como caso de estudio del Ministerio de Transportes y Comunicaciones. Conecta tus viajes en <strong>PeruRail</strong> con circuitos turísticos diseñados para realizarse <strong>exclusivamente a pie</strong> desde cada estación, con pronóstico climático de <strong>SENAMHI</strong> en tiempo real.
             </p>
 
             {/* CTAs */}
@@ -353,7 +353,7 @@ export default function HomePage() {
 
             <div className="bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 space-y-1.5">
               <span className="w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center font-bold text-xs">4</span>
-              <h4 className="text-sm font-bold">Informe PDF Oficial</h4>
+              <h4 className="text-sm font-bold">Informe PDF Consolidado</h4>
               <p className="text-xs text-slate-400">Descarga tu informe consolidado con horarios y presupuesto.</p>
             </div>
           </div>

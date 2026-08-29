@@ -92,7 +92,7 @@ function InformeContent() {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-800 text-xs font-bold mb-2">
             <FileText className="w-3.5 h-3.5" />
-            <span>Módulo de Informes Oficiales MTC</span>
+            <span>Módulo de Informes Consolidados</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Consultas e Informes Turísticos Consolidados
