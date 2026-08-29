@@ -68,7 +68,7 @@ export default function Footer() {
               <span className="font-extrabold text-lg text-white">MTC Perú</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Prototipo de software desarrollado para la práctica académica de Ingeniería de Software (CPIS Ingeniería de Sistemas) basado en el caso de estudio de transporte ferroviario y turismo a pie del MTC.
+              Prototipo de software desarrollado para la práctica académica de Ingeniería de Software (Ingeniería de Sistemas) basado en el caso de estudio de transporte ferroviario y turismo a pie del MTC.
             </p>
             <div className="flex items-center gap-2 text-xs text-emerald-400">
               <ShieldCheck className="w-4 h-4" />
@@ -150,7 +150,7 @@ export default function Footer() {
 
         {/* Bottom copyright */}
         <div className="border-t border-slate-800/80 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} Proyecto Académico: Caso "Zonas Turísticas MTC" - CPIS Ingeniería de Sistemas.</p>
+          <p>© {new Date().getFullYear()} Proyecto Académico: Caso "Zonas Turísticas MTC" - Ingeniería de Sistemas.</p>
           <p className="flex items-center gap-1">
             Desarrollado para la práctica de investigación y diseño de software
           </p>

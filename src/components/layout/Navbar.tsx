@@ -43,7 +43,7 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           <span className="inline-block w-2 h-2 rounded-full bg-red-500"></span>
           <span className="font-semibold text-slate-300">
-            Proyecto Universitario • Caso MTC Zonas Turísticas | CPIS Ingeniería de Sistemas
+            Proyecto Universitario • Caso MTC Zonas Turísticas | Ingeniería de Sistemas
           </span>
         </div>
         <div className="hidden md:flex items-center gap-4 text-slate-400">

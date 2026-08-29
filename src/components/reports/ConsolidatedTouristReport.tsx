@@ -467,7 +467,7 @@ export default function ConsolidatedTouristReport({
         <div className="border-t border-slate-200 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-600" />
-            <span>Prototipo de Software Académico generado para el caso 'Zonas Turísticas MTC' (CPIS Ingeniería de Sistemas).</span>
+            <span>Prototipo de Software Académico generado para el caso 'Zonas Turísticas MTC' (Ingeniería de Sistemas).</span>
           </div>
           <div className="font-mono text-[10px] text-slate-400">
             PROYECTO: MTC-TRAIN-{codigoItinerario}
