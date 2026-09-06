@@ -25,12 +25,20 @@ body {
 }
 
 /* Accessibility & High Contrast Enhancements for Dark Mode */
+.dark .text-slate-400 {
+  color: #cbd5e1; /* Slate-300: crisp and readable */
+}
+
 .dark .text-slate-500 {
   color: #94a3b8; /* Slate-400: ensures high contrast > 4.5:1 on dark backgrounds */
 }
 
 .dark .text-slate-600 {
-  color: #cbd5e1; /* Slate-300: crisp and readable */
+  color: #e2e8f0; /* Slate-200: bright, highly legible text */
+}
+
+.dark .text-slate-700 {
+  color: #f8fafc; /* Slate-50: maximum contrast on dark backgrounds */
 }
 
 /* Native Select & Option dark styling */

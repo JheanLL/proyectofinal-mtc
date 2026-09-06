@@ -81,8 +81,8 @@ export default function PeruRailScheduleCard({
                 onClick={() => onSelectHorario(hor)}
                 className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-5 ${
                   isSelected
-                    ? 'border-red-600 bg-red-50/60 dark:bg-red-950/40 shadow-sm ring-2 ring-red-600/30'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-950/50 hover:bg-slate-50/80 dark:hover:bg-slate-850'
+                    ? 'border-red-600 bg-red-50/70 dark:bg-red-950/50 shadow-sm ring-2 ring-red-600/40'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50/80 dark:hover:bg-slate-800'
                 }`}
               >
                 {/* Selected Indicator Badge */}

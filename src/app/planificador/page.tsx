@@ -265,34 +265,42 @@ function PlanificadorContent() {
                     onClick={() => togglePreferencia(pref.pre_codigo)}
                     className={`relative p-5 sm:p-6 rounded-3xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-4 ${
                       isSelected
-                        ? 'border-red-600 bg-red-50/70 dark:bg-red-950/40 shadow-sm ring-2 ring-red-600/30'
-                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-950/50 hover:bg-slate-50 dark:hover:bg-slate-850'
+                        ? 'border-red-600 bg-red-50/80 dark:bg-red-950/60 shadow-sm ring-2 ring-red-600/40'
+                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm ${
-                        isSelected ? 'bg-red-700 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
+                        isSelected ? 'bg-red-700 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700'
                       }`}>
                         {pref.pre_nombre.charAt(0)}
                       </div>
-                      {isSelected && (
+                      {isSelected ? (
                         <div className="bg-red-600 text-white rounded-full p-1 shadow-sm">
                           <Check className="w-4 h-4 stroke-[3]" />
                         </div>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+                          Disponible
+                        </span>
                       )}
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-snug">
                         {pref.pre_nombre}
                       </h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                      <p className="text-xs text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
                         {pref.pre_descripcion}
                       </p>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-xs font-bold text-red-700 dark:text-red-400">
-                      {isSelected ? '✓ Seleccionado' : '+ Seleccionar'}
+                    <div className={`pt-3 border-t text-xs font-extrabold flex items-center justify-between ${
+                      isSelected 
+                        ? 'border-red-200 dark:border-red-900/60 text-red-700 dark:text-red-400' 
+                        : 'border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                    }`}>
+                      <span>{isSelected ? '✓ Seleccionado' : '+ Seleccionar'}</span>
                     </div>
                   </div>
                 );
@@ -452,8 +460,8 @@ function PlanificadorContent() {
                       onClick={() => setSelectedZonaId(z.zon_id)}
                       className={`relative rounded-3xl border-2 overflow-hidden transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected
-                          ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-md ring-2 ring-emerald-600/30'
-                          : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-950/50 hover:bg-slate-50 dark:hover:bg-slate-850'
+                          ? 'border-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/50 shadow-md ring-2 ring-emerald-600/40'
+                          : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
                       {/* Image with comfortable height (192px) */}
