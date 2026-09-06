@@ -145,11 +145,11 @@ export default function ConsolidatedTouristReport({
   return (
     <div className="space-y-6">
       {/* Top Action Toolbar (Hidden during print) */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
-          <FileCheck className="w-5 h-5 text-emerald-600" />
+      <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-3 print:hidden transition-colors">
+        <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-bold text-xs sm:text-sm">
+          <FileCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400" />
           <span>Informe Consolidado Listo</span>
-          <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-mono font-medium">
+          <span className="text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded-full font-mono font-medium">
             {codigoItinerario}
           </span>
         </div>
@@ -157,27 +157,27 @@ export default function ConsolidatedTouristReport({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleShare}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all"
           >
-            <Share2 className="w-4 h-4" />
-            <span>{copiedLink ? '¡Enlace Copiado!' : 'Compartir'}</span>
+            <Share2 className="w-3.5 h-3.5" />
+            <span>{copiedLink ? '¡Copiado!' : 'Compartir'}</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-3.5 h-3.5" />
             <span>Imprimir</span>
           </button>
 
           <button
             onClick={handleDownloadPDF}
             disabled={isGeneratingPdf}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-xs font-bold rounded-xl shadow-md transition-all disabled:opacity-50"
           >
-            <Download className="w-4 h-4" />
-            <span>{isGeneratingPdf ? 'Generando PDF...' : 'Descargar Informe PDF'}</span>
+            <Download className="w-3.5 h-3.5" />
+            <span>{isGeneratingPdf ? 'Generando...' : 'Descargar PDF'}</span>
           </button>
         </div>
       </div>

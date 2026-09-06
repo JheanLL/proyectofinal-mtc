@@ -24,14 +24,9 @@ import {
   CloudSun, 
   FileText, 
   RefreshCw, 
-  Users, 
-  CheckCircle2, 
-  AlertTriangle, 
   ArrowRight,
   TrendingUp,
-  Download,
   Printer,
-  Sparkles,
   RotateCcw
 } from 'lucide-react';
 import { formatCurrencyPEN, formatDistance, formatDurationMin } from '@/lib/utils';
@@ -40,7 +35,6 @@ export default function AdminDashboardPage() {
   const [estaciones, setEstaciones] = useState<TblEstacion[]>([]);
   const [zonas, setZonas] = useState<TblZonaTuristica[]>([]);
   const [horarios, setHorarios] = useState<TblHorarioTren[]>([]);
-  const [integraciones, setIntegraciones] = useState<TblEstadoIntegracion[]>([]);
   const [itinerarios, setItinerarios] = useState<TblItinerarioConsulta[]>([]);
   const [selectedStationFilter, setSelectedStationFilter] = useState<string>('todos');
 
@@ -48,7 +42,6 @@ export default function AdminDashboardPage() {
     setEstaciones(getEstaciones());
     setZonas(getZonasTuristicas());
     setHorarios(getHorariosTren());
-    setIntegraciones(getIntegraciones());
     setItinerarios(getItinerarios());
   };
 
@@ -59,204 +52,200 @@ export default function AdminDashboardPage() {
   }, []);
 
   const handleResetData = () => {
-    if (confirm('¿Restablecer la base de datos a sus valores iniciales oficiales?')) {
+    if (confirm('¿Restablecer la base de datos a sus valores iniciales?')) {
       resetDatabaseToDefaults();
       reloadData();
       alert('Base de datos restablecida.');
     }
   };
 
-  // Matrix of Stations & Assigned Zones (Requirement for Travel Group Perú)
   const filteredZonas = zonas.filter(z => 
     selectedStationFilter === 'todos' || z.zon_estacion_id === selectedStationFilter
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 transition-colors duration-200">
       {/* Admin Header */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-slate-900 dark:bg-slate-950 text-white rounded-3xl p-5 sm:p-7 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950 border border-red-700/60 text-red-300 text-xs font-bold mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950 border border-red-700/60 text-red-300 text-xs font-bold mb-1.5">
             <Settings className="w-3.5 h-3.5 text-red-400" />
-            <span>Panel de Configuración y Gestión MTC</span>
+            <span>Panel de Configuración y Gestión</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-            Consola de Administración y Gestión de Datos
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+            Consola de Administración y Gestión
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
-            Gestión de roles y módulos para <strong>Travel Group Perú</strong> (Zonas turísticas a pie), <strong>PeruRail</strong> (Horarios y tarifas) y Monitoreo del <strong>SENAMHI</strong>.
+          <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
+            Gestión modular para <strong>Travel Group Perú</strong> (Zonas turísticas a pie), <strong>PeruRail</strong> (Horarios y tarifas) y Monitoreo de <strong>SENAMHI</strong>.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleResetData}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-700 flex items-center gap-2 transition-colors"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-700 flex items-center gap-1.5 transition-colors"
           >
-            <RotateCcw className="w-4 h-4" />
-            <span>Restablecer Datos</span>
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Restablecer</span>
           </button>
 
           <Link
             href="/admin/integraciones"
-            className="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition-all"
+            className="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition-all"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
             <span>Sincronizar APIs</span>
           </Link>
         </div>
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Estaciones */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Estaciones Ferroviarias</span>
-            <span className="text-2xl font-black text-slate-900 mt-1 block">{estaciones.length}</span>
-            <span className="text-xs text-slate-500">PeruRail (Solo lectura)</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Estaciones</span>
+            <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 block">{estaciones.length}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">PeruRail (Lectura)</span>
           </div>
-          <div className="p-3 bg-red-50 text-red-700 rounded-2xl">
-            <Train className="w-6 h-6" />
+          <div className="p-2.5 bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 rounded-2xl">
+            <Train className="w-5 h-5" />
           </div>
         </div>
 
         {/* Zonas Turísticas */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Zonas Turísticas a Pie</span>
-            <span className="text-2xl font-black text-emerald-700 mt-1 block">{zonas.length}</span>
-            <span className="text-xs text-slate-500">Travel Group Perú (CRUD)</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Zonas a Pie</span>
+            <span className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 mt-0.5 block">{zonas.length}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">Travel Group (CRUD)</span>
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-700 rounded-2xl">
-            <MapPin className="w-6 h-6" />
+          <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 rounded-2xl">
+            <MapPin className="w-5 h-5" />
           </div>
         </div>
 
         {/* Frecuencias de Tren */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Horarios de Tren</span>
-            <span className="text-2xl font-black text-blue-700 mt-1 block">{horarios.length}</span>
-            <span className="text-xs text-slate-500">PeruRail Tarifario (CRUD)</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Frecuencias</span>
+            <span className="text-xl sm:text-2xl font-black text-blue-700 dark:text-blue-400 mt-0.5 block">{horarios.length}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">PeruRail (CRUD)</span>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-700 rounded-2xl">
-            <TrendingUp className="w-6 h-6" />
+          <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 rounded-2xl">
+            <TrendingUp className="w-5 h-5" />
           </div>
         </div>
 
         {/* Consultas / Informes */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Itinerarios Emitidos</span>
-            <span className="text-2xl font-black text-purple-700 mt-1 block">{itinerarios.length}</span>
-            <span className="text-xs text-slate-500">Informes Consolidados</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Itinerarios</span>
+            <span className="text-xl sm:text-2xl font-black text-purple-700 dark:text-purple-400 mt-0.5 block">{itinerarios.length}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">Emitidos</span>
           </div>
-          <div className="p-3 bg-purple-50 text-purple-700 rounded-2xl">
-            <FileText className="w-6 h-6" />
+          <div className="p-2.5 bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 rounded-2xl">
+            <FileText className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Entity Navigation Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Card 1: Travel Group Peru */}
-        <div className="bg-white rounded-3xl p-6 border-2 border-emerald-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
-          <div className="space-y-2">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-              <MapPin className="w-5 h-5" />
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border-2 border-emerald-200 dark:border-emerald-900/60 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3.5">
+          <div className="space-y-1.5">
+            <div className="w-9 h-9 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold">
+              <MapPin className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded">
               Travel Group Perú
             </span>
-            <h3 className="text-base font-extrabold text-slate-900">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
               CRUD Zonas Turísticas
             </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Registrar, modificar y georreferenciar circuitos a pie vinculados a estaciones con cálculo de distancias y tiempos.
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Registrar, modificar y georreferenciar circuitos a pie vinculados a estaciones con cálculo de distancias.
             </p>
           </div>
           <Link
             href="/admin/zonas"
-            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
           >
-            <span>Gestionar Zonas Turísticas</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Gestionar Zonas</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {/* Card 2: PeruRail */}
-        <div className="bg-white rounded-3xl p-6 border-2 border-blue-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
-          <div className="space-y-2">
-            <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
-              <Train className="w-5 h-5" />
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border-2 border-blue-200 dark:border-blue-900/60 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3.5">
+          <div className="space-y-1.5">
+            <div className="w-9 h-9 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 flex items-center justify-center font-bold">
+              <Train className="w-4 h-4" />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded">
               PeruRail
             </span>
-            <h3 className="text-base font-extrabold text-slate-900">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
               CRUD Horarios y Tarifas
             </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Administración de trenes, salidas, llegadas, tipos de servicio (Expedition, Vistadome) y tarifas en PEN y USD.
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Administración de trenes, frecuencias, tipos de servicio (Expedition, Vistadome) y tarifas oficiales.
             </p>
           </div>
           <Link
             href="/admin/horarios"
-            className="w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+            className="w-full bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
           >
-            <span>Gestionar Trenes & Tarifas</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Gestionar Trenes</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {/* Card 3: Integraciones */}
-        <div className="bg-white rounded-3xl p-6 border-2 border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
-          <div className="space-y-2">
-            <div className="w-10 h-10 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
-              <CloudSun className="w-5 h-5 text-blue-700" />
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border-2 border-slate-200 dark:border-slate-800 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3.5">
+          <div className="space-y-1.5">
+            <div className="w-9 h-9 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 flex items-center justify-center font-bold">
+              <CloudSun className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-800 px-2 py-0.5 rounded">
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 px-2 py-0.5 rounded">
               SENAMHI & APIs
             </span>
-            <h3 className="text-base font-extrabold text-slate-900">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
               Sincronizador de Datos
             </h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Monitoreo del estado de sincronización periódica, latencias de red y flujo meteorológico de SENAMHI.
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Monitoreo del estado de sincronización periódica, latencias de red y llamadas a API meteorológica.
             </p>
           </div>
           <Link
             href="/admin/integraciones"
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+            className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
           >
-            <span>Monitor de Integraciones</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Monitor de APIs</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
 
-      {/* Required Report for Travel Group Perú: List of Stations and Assigned Zones */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      {/* Matrix Table */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
           <div>
-            <div className="inline-flex items-center gap-2 text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full mb-1">
-              <span>Informe Administrativo para Travel Group Perú</span>
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full mb-1">
+              <span>Informe para Travel Group Perú</span>
             </div>
-            <h3 className="text-lg font-black text-slate-900">
-              Matriz de Asignación: Estaciones y Zonas Turísticas a Pie
+            <h3 className="text-base font-black text-slate-900 dark:text-white">
+              Matriz de Asignación: Estaciones y Zonas a Pie
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Listado oficial consolidado para control del levantamiento y actualización de circuitos peatonales.
-            </p>
           </div>
 
-          {/* Station Filter for the report */}
+          {/* Station Filter */}
           <div className="flex items-center gap-2">
             <select
               value={selectedStationFilter}
               onChange={(e) => setSelectedStationFilter(e.target.value)}
-              className="text-xs font-semibold bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:ring-2 focus:ring-red-600 focus:outline-none"
+              className="text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-red-600 focus:outline-none"
             >
               <option value="todos">Todas las Estaciones ({estaciones.length})</option>
               {estaciones.map(e => (
@@ -268,10 +257,10 @@ export default function AdminDashboardPage() {
 
             <button
               onClick={() => window.print()}
-              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
-              title="Imprimir Matriz"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold"
+              title="Imprimir"
             >
-              <Printer className="w-4 h-4" />
+              <Printer className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -280,63 +269,62 @@ export default function AdminDashboardPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                <th className="p-3">Estación Ferroviaria</th>
-                <th className="p-3">Zona Turística (Travel Group)</th>
-                <th className="p-3">Categoría</th>
-                <th className="p-3">Distancia / Tiempo a Pie (Ida)</th>
-                <th className="p-3">Ida y Vuelta Total</th>
-                <th className="p-3">Dificultad</th>
-                <th className="p-3">Tarifa Entrada</th>
-                <th className="p-3 text-right">Acción</th>
+              <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                <th className="p-2.5">Estación</th>
+                <th className="p-2.5">Zona Turística</th>
+                <th className="p-2.5">Categoría</th>
+                <th className="p-2.5">Ida</th>
+                <th className="p-2.5">Ida y Vuelta</th>
+                <th className="p-2.5">Dificultad</th>
+                <th className="p-2.5">Entrada</th>
+                <th className="p-2.5 text-right">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredZonas.map((z) => {
                 const est = estaciones.find(e => e.est_id === z.zon_estacion_id);
                 return (
-                  <tr key={z.zon_id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="p-3 font-bold text-slate-900">
-                      <div className="flex items-center gap-1.5">
-                        <Train className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                  <tr key={z.zon_id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="p-2.5 font-bold text-slate-900 dark:text-white">
+                      <div className="flex items-center gap-1">
+                        <Train className="w-3 h-3 text-red-600 dark:text-red-400 shrink-0" />
                         <span>{est?.est_nombre || 'No asignada'}</span>
                       </div>
-                      <span className="text-[10px] text-slate-400 block font-normal">{est?.est_ciudad}</span>
                     </td>
-                    <td className="p-3 font-semibold text-slate-800">
+                    <td className="p-2.5 font-semibold text-slate-800 dark:text-slate-200">
                       {z.zon_nombre}
                     </td>
-                    <td className="p-3">
-                      <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                    <td className="p-2.5">
+                      <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold px-1.5 py-0.2 rounded uppercase">
                         {z.zon_categoria}
                       </span>
                     </td>
-                    <td className="p-3 text-slate-600">
+                    <td className="p-2.5 text-slate-600 dark:text-slate-400">
                       {formatDistance(z.zon_distancia_metros)} (~{formatDurationMin(z.zon_tiempo_caminata_min)})
                     </td>
-                    <td className="p-3 font-bold text-emerald-800">
+                    <td className="p-2.5 font-bold text-emerald-800 dark:text-emerald-400">
                       {formatDistance(z.zon_distancia_metros * 2)} (~{formatDurationMin(z.zon_tiempo_caminata_min * 2)})
                     </td>
-                    <td className="p-3">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                    <td className="p-2.5">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
                         z.zon_dificultad === 'Fácil'
-                          ? 'bg-emerald-100 text-emerald-800'
+                          ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
                           : z.zon_dificultad === 'Moderado'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
+                          : 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300'
                       }`}>
                         {z.zon_dificultad}
                       </span>
                     </td>
-                    <td className="p-3 text-slate-700 font-semibold">
+                    <td className="p-2.5 text-slate-700 dark:text-slate-300 font-semibold">
                       {z.zon_precio_entrada_pen === 0 ? 'Gratis' : formatCurrencyPEN(z.zon_precio_entrada_pen)}
                     </td>
-                    <td className="p-3 text-right">
+                    <td className="p-2.5 text-right">
                       <Link
                         href={`/zonas/${z.zon_id}`}
-                        className="text-red-700 hover:text-red-900 font-bold"
+                        className="text-red-700 dark:text-red-400 hover:text-red-900 font-bold"
                       >
-                        Ver Guía
+                        Ver
                       </Link>
                     </td>
                   </tr>

@@ -1,9 +1,20 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+}
+
+.dark {
+  --background: #090d16;
+  --foreground: #f1f5f9;
+}
+
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body {
@@ -19,14 +30,14 @@ body {
   border: none;
 }
 
-/* Print Specific Optimizations for MTC Reports */
+/* Print Specific Optimizations for Reports */
 @media print {
   body {
     background-color: #ffffff !important;
     color: #000000 !important;
   }
 
-  header, footer, nav {
+  header, footer, nav, .no-print {
     display: none !important;
   }
 

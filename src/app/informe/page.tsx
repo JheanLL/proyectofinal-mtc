@@ -16,22 +16,13 @@ import {
   TblEstacion, 
   TblZonaTuristica, 
   TblHorarioTren, 
-  TblPronosticoClima 
 } from '@/types/database';
 import { 
   FileText, 
   Search, 
   Sparkles, 
-  Calendar, 
-  Train, 
-  Footprints, 
-  ArrowRight, 
-  Download, 
-  ShieldCheck,
-  CheckCircle2
 } from 'lucide-react';
 import ConsolidatedTouristReport from '@/components/reports/ConsolidatedTouristReport';
-import { formatCurrencyPEN, formatDistance, formatDurationMin, formatDateSpanish } from '@/lib/utils';
 
 function InformeContent() {
   const searchParams = useSearchParams();
@@ -54,6 +45,22 @@ function InformeContent() {
     setZonas(loadedZon);
     setHorarios(loadedHor);
 
+    // Fetch from API
+    fetch('/api/itinerarios')
+      .then(res => res.json())
+      .then(json => {
+        if (json.data && json.data.length > 0) {
+          // Merge API itineraries with store
+          setItinerarios(prev => {
+            const map = new Map<string, TblItinerarioConsulta>();
+            prev.forEach(i => map.set(i.iti_codigo, i));
+            (json.data as TblItinerarioConsulta[]).forEach(i => map.set(i.iti_codigo, i));
+            return Array.from(map.values());
+          });
+        }
+      })
+      .catch(() => {});
+
     const qCodigo = searchParams.get('codigo');
     if (qCodigo) {
       const found = loadedIti.find(i => i.iti_codigo.toLowerCase() === qCodigo.toLowerCase() || i.iti_id === qCodigo);
@@ -69,7 +76,9 @@ function InformeContent() {
   const handleSearchCodigo = (e: React.FormEvent) => {
     e.preventDefault();
     if (!codigoBusqueda.trim()) return;
-    const found = getItinerarioByCodigo(codigoBusqueda.trim());
+    const found = getItinerarioByCodigo(codigoBusqueda.trim()) || 
+      itinerarios.find(i => i.iti_codigo.toLowerCase() === codigoBusqueda.trim().toLowerCase());
+    
     if (found) {
       setActiveItinerario(found);
     } else {
@@ -77,7 +86,6 @@ function InformeContent() {
     }
   };
 
-  // If we have an active itinerary, resolve related entities
   const estacionOrigen = activeItinerario ? estaciones.find(e => e.est_id === activeItinerario.iti_estacion_origen_id) || estaciones[0] : estaciones[0];
   const estacionDestino = activeItinerario ? estaciones.find(e => e.est_id === activeItinerario.iti_estacion_destino_id) || estaciones[1] : estaciones[1];
   const zonaTuristica = activeItinerario ? zonas.find(z => z.zon_id === activeItinerario.iti_zona_turistica_id) || zonas[0] : zonas[0];
@@ -86,47 +94,47 @@ function InformeContent() {
   const climaSenamhi = estacionDestino ? getClimaByEstacion(estacionDestino.est_id) : null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 transition-colors duration-200">
       {/* Header Banner */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 print:hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-800 text-xs font-bold mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-400 text-xs font-bold mb-1.5">
             <FileText className="w-3.5 h-3.5" />
             <span>Módulo de Informes Consolidados</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Consultas e Informes Turísticos Consolidados
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            Consultas e Informes Turísticos
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
-            Visualiza, descarga en PDF o imprime tus informes de visita generados con datos climáticos y ferroviarios actualizados.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-2xl">
+            Visualiza, descarga en PDF o imprime tus informes de visita generados con datos climáticos y ferroviarios en vivo.
           </p>
         </div>
 
         <Link
           href="/planificador"
-          className="bg-red-700 hover:bg-red-800 text-white font-bold text-xs px-5 py-3 rounded-2xl shadow-md flex items-center gap-2 transition-all self-start md:self-auto"
+          className="bg-red-700 hover:bg-red-800 text-white font-bold text-xs px-4 py-2.5 rounded-2xl shadow-md flex items-center gap-1.5 transition-all self-start md:self-auto"
         >
-          <Sparkles className="w-4 h-4" />
-          <span>Generar Nuevo Informe</span>
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Nuevo Itinerario</span>
         </Link>
       </div>
 
       {/* Lookup Bar & Recent Queries (Hidden on print) */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4 print:hidden">
-        <form onSubmit={handleSearchCodigo} className="flex flex-col sm:flex-row gap-3">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 print:hidden">
+        <form onSubmit={handleSearchCodigo} className="flex flex-col sm:flex-row gap-2.5">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={codigoBusqueda}
               onChange={(e) => setCodigoBusqueda(e.target.value)}
-              placeholder="Buscar por código de itinerario (Ej: MTC-TRAIN-8924)..."
-              className="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-900 focus:ring-2 focus:ring-red-600 focus:outline-none"
+              placeholder="Buscar por código de itinerario (Ej: TRAIN-8924)..."
+              className="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-600 focus:outline-none"
             />
           </div>
           <button
             type="submit"
-            className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-colors shadow-sm"
+            className="bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-2xs"
           >
             Buscar Informe
           </button>
@@ -134,8 +142,8 @@ function InformeContent() {
 
         {/* Recent Itineraries pill list */}
         {itinerarios.length > 0 && (
-          <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-slate-500">Historial reciente:</span>
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Historial:</span>
             {itinerarios.map((it) => (
               <button
                 key={it.iti_id}
@@ -143,10 +151,10 @@ function InformeContent() {
                   setActiveItinerario(it);
                   setCodigoBusqueda(it.iti_codigo);
                 }}
-                className={`text-xs font-mono px-3 py-1 rounded-lg border transition-all ${
+                className={`text-[11px] font-mono px-2.5 py-0.5 rounded-lg border transition-all ${
                   activeItinerario?.iti_id === it.iti_id
                     ? 'bg-red-700 text-white border-red-700 font-bold'
-                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
                 }`}
               >
                 {it.iti_codigo}
@@ -159,7 +167,7 @@ function InformeContent() {
       {/* Main Report Display */}
       {zonaTuristica && horarioIda && horarioRetorno && climaSenamhi ? (
         <ConsolidatedTouristReport
-          codigoItinerario={activeItinerario?.iti_codigo || 'MTC-TRAIN-8924'}
+          codigoItinerario={activeItinerario?.iti_codigo || 'TRAIN-8924'}
           fechaViaje={activeItinerario?.iti_fecha_creacion?.split('T')[0] || new Date().toISOString().split('T')[0]}
           usuarioNombre={activeItinerario?.iti_usuario_nombre || 'Turista Nacional / Internacional'}
           usuarioEmail={activeItinerario?.iti_usuario_email}
@@ -172,19 +180,19 @@ function InformeContent() {
           preferenciasSeleccionadas={activeItinerario?.iti_preferencias_seleccionadas || ['naturaleza']}
         />
       ) : (
-        <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm space-y-4">
-          <div className="w-12 h-12 bg-red-100 text-red-700 rounded-full flex items-center justify-center mx-auto">
-            <FileText className="w-6 h-6" />
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+          <div className="w-10 h-10 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 rounded-full flex items-center justify-center mx-auto">
+            <FileText className="w-5 h-5" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">No hay informes seleccionados</h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">No hay informes seleccionados</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
             Utiliza el planificador asistido para configurar tus preferencias y generar tu primer informe consolidado en PDF.
           </p>
           <Link
             href="/planificador"
-            className="inline-flex items-center gap-2 bg-red-700 text-white text-xs font-bold px-5 py-3 rounded-xl shadow-md"
+            className="inline-flex items-center gap-1.5 bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Ir al Planificador</span>
           </Link>
         </div>
@@ -195,7 +203,7 @@ function InformeContent() {
 
 export default function InformePage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-slate-500">Cargando Informe MTC...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-slate-500">Cargando Informe...</div>}>
       <InformeContent />
     </Suspense>
   );

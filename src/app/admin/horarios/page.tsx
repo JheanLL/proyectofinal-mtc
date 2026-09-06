@@ -19,12 +19,9 @@ import {
   Edit3, 
   Trash2, 
   Train, 
-  Clock, 
-  DollarSign, 
   ArrowLeft, 
   Save, 
   X, 
-  Check,
   Search,
   Coffee
 } from 'lucide-react';
@@ -114,123 +111,123 @@ export default function AdminHorariosCrudPage() {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 transition-colors duration-200">
       {/* Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-bold mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-400 text-xs font-bold mb-1.5">
             <Train className="w-3.5 h-3.5" />
             <span>Módulo de Gestión PeruRail</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            CRUD de Horarios, Rutas y Tarifas de Tren
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            CRUD de Horarios y Tarifas de Tren
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-2xl">
             Administración de servicios ferroviarios, frecuencias diarias, tiempos de tránsito y tarifas de billetes en Soles (PEN) y Dólares (USD).
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Link
             href="/admin"
-            className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors"
+            className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Panel Admin</span>
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Panel</span>
           </Link>
 
           <button
             onClick={handleOpenCreate}
-            className="bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition-all"
+            className="bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition-all"
           >
-            <Plus className="w-4 h-4" />
-            <span>Nueva Frecuencia de Tren</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nuevo Tren</span>
           </button>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+      <div className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2.5">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por código de tren o tipo de servicio..."
-            className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+            className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
           />
         </div>
       </div>
 
       {/* Table List */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                <th className="p-4">Código / Servicio</th>
-                <th className="p-4">Origen ➔ Destino</th>
-                <th className="p-4">Salida / Llegada</th>
-                <th className="p-4">Duración</th>
-                <th className="p-4">Tarifa Regular (PEN)</th>
-                <th className="p-4">Tarifa Turista (USD)</th>
-                <th className="p-4">Refrigerio</th>
-                <th className="p-4 text-right">Acciones</th>
+              <tr className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                <th className="p-3">Código / Servicio</th>
+                <th className="p-3">Origen ➔ Destino</th>
+                <th className="p-3">Salida / Llegada</th>
+                <th className="p-3">Duración</th>
+                <th className="p-3">Tarifa (PEN)</th>
+                <th className="p-3">Tarifa (USD)</th>
+                <th className="p-3">Refrigerio</th>
+                <th className="p-3 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredHorarios.map((h) => {
                 const orig = estaciones.find(e => e.est_id === h.hor_estacion_origen_id);
                 const dest = estaciones.find(e => e.est_id === h.hor_estacion_destino_id);
                 return (
-                  <tr key={h.hor_id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="p-4">
-                      <div className="font-mono font-bold text-slate-900 text-sm">{h.hor_codigo_tren}</div>
-                      <span className="inline-block text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded mt-0.5">
+                  <tr key={h.hor_id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="p-3">
+                      <div className="font-mono font-bold text-slate-900 dark:text-white text-xs">{h.hor_codigo_tren}</div>
+                      <span className="inline-block text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 px-1.5 py-0.2 rounded mt-0.5">
                         {h.hor_servicio_tipo}
                       </span>
                     </td>
-                    <td className="p-4 font-semibold text-slate-800">
+                    <td className="p-3 font-semibold text-slate-800 dark:text-slate-200">
                       <div>{orig?.est_nombre || 'Origen'}</div>
-                      <div className="text-slate-400 font-normal text-[11px]">➔ {dest?.est_nombre || 'Destino'}</div>
+                      <div className="text-slate-400 font-normal text-[10px]">➔ {dest?.est_nombre || 'Destino'}</div>
                     </td>
-                    <td className="p-4 font-bold text-slate-900">
+                    <td className="p-3 font-bold text-slate-900 dark:text-white">
                       <div>{h.hor_hora_salida} ➔ {h.hor_hora_llegada}</div>
                     </td>
-                    <td className="p-4 text-slate-600 font-medium">
+                    <td className="p-3 text-slate-600 dark:text-slate-400 font-medium">
                       {formatDurationMin(h.hor_duracion_min)}
                     </td>
-                    <td className="p-4 font-bold text-red-700 text-sm">
+                    <td className="p-3 font-bold text-red-700 dark:text-red-400 text-xs sm:text-sm">
                       {formatCurrencyPEN(h.hor_tarifa_regular_pen)}
                     </td>
-                    <td className="p-4 text-slate-700 font-semibold">
+                    <td className="p-3 text-slate-700 dark:text-slate-300 font-semibold">
                       {formatCurrencyUSD(h.hor_tarifa_turista_usd)}
                     </td>
-                    <td className="p-4">
+                    <td className="p-3">
                       {h.hor_incluye_refrigerio ? (
-                        <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded flex items-center gap-1 w-max">
-                          <Coffee className="w-3 h-3" /> Incluido
+                        <span className="text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 px-1.5 py-0.2 rounded flex items-center gap-1 w-max">
+                          <Coffee className="w-3 h-3" /> Sí
                         </span>
                       ) : (
-                        <span className="text-[10px] text-slate-400 font-medium">No incluido</span>
+                        <span className="text-[10px] text-slate-400 font-medium">No</span>
                       )}
                     </td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    <td className="p-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => handleOpenEdit(h)}
-                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                          className="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
                           title="Editar Frecuencia"
                         >
-                          <Edit3 className="w-4 h-4" />
+                          <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(h.hor_id, h.hor_codigo_tren)}
-                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
+                          className="p-1 rounded-lg bg-red-50 dark:bg-red-950 hover:bg-red-100 text-red-600 dark:text-red-400 transition-colors"
                           title="Eliminar Frecuencia"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -245,46 +242,44 @@ export default function AdminHorariosCrudPage() {
       {/* Modal Form */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
               <div>
-                <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">
+                <span className="text-[10px] uppercase font-bold text-blue-700 dark:text-blue-400 tracking-wider">
                   PeruRail • Tarifario & Logística
                 </span>
-                <h3 className="text-lg font-black text-slate-900">
-                  {editingId ? 'Editar Frecuencia de Tren' : 'Registrar Nueva Frecuencia de Tren'}
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  {editingId ? 'Editar Frecuencia de Tren' : 'Registrar Nueva Frecuencia'}
                 </h3>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Código */}
+            <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Código del Tren: *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Código del Tren: *</label>
                   <input
                     type="text"
                     required
                     value={formData.hor_codigo_tren}
                     onChange={(e) => setFormData({ ...formData, hor_codigo_tren: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-mono font-bold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
                     placeholder="Ej: EXP-61"
                   />
                 </div>
 
-                {/* Tipo de Servicio */}
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Tipo de Servicio: *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Tipo de Servicio: *</label>
                   <select
                     value={formData.hor_servicio_tipo}
                     onChange={(e) => setFormData({ ...formData, hor_servicio_tipo: e.target.value as TipoServicioTren })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
                   >
                     <option value="Expedition">Expedition</option>
                     <option value="Vistadome">Vistadome</option>
@@ -294,13 +289,12 @@ export default function AdminHorariosCrudPage() {
                   </select>
                 </div>
 
-                {/* Estación Origen */}
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Estación de Origen: *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Estación de Origen: *</label>
                   <select
                     value={formData.hor_estacion_origen_id}
                     onChange={(e) => setFormData({ ...formData, hor_estacion_origen_id: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
                   >
                     {estaciones.map(e => (
                       <option key={e.est_id} value={e.est_id}>
@@ -310,13 +304,12 @@ export default function AdminHorariosCrudPage() {
                   </select>
                 </div>
 
-                {/* Estación Destino */}
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Estación de Destino: *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Estación de Destino: *</label>
                   <select
                     value={formData.hor_estacion_destino_id}
                     onChange={(e) => setFormData({ ...formData, hor_estacion_destino_id: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
                   >
                     {estaciones.map(e => (
                       <option key={e.est_id} value={e.est_id}>
@@ -326,82 +319,52 @@ export default function AdminHorariosCrudPage() {
                   </select>
                 </div>
 
-                {/* Horas */}
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Hora de Salida: *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Hora de Salida: *</label>
                   <input
                     type="time"
                     required
                     value={formData.hor_hora_salida}
                     onChange={(e) => setFormData({ ...formData, hor_hora_salida: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Hora de Llegada: *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Hora de Llegada: *</label>
                   <input
                     type="time"
                     required
                     value={formData.hor_hora_llegada}
                     onChange={(e) => setFormData({ ...formData, hor_hora_llegada: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
                   />
                 </div>
 
-                {/* Duración */}
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Duración (minutos): *</label>
-                  <input
-                    type="number"
-                    required
-                    min={10}
-                    value={formData.hor_duracion_min}
-                    onChange={(e) => setFormData({ ...formData, hor_duracion_min: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                {/* Asientos */}
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Asientos Disponibles:</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={formData.hor_asientos_disponibles}
-                    onChange={(e) => setFormData({ ...formData, hor_asientos_disponibles: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                {/* Tarifas */}
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Tarifa Regular (S/ PEN): *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Tarifa (S/ PEN): *</label>
                   <input
                     type="number"
                     required
                     min={1}
-                    step={1}
                     value={formData.hor_tarifa_regular_pen}
                     onChange={(e) => setFormData({ ...formData, hor_tarifa_regular_pen: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Tarifa Turista ($ USD): *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Tarifa Turista ($ USD): *</label>
                   <input
                     type="number"
                     required
                     min={1}
-                    step={1}
                     value={formData.hor_tarifa_turista_usd}
                     onChange={(e) => setFormData({ ...formData, hor_tarifa_turista_usd: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-semibold text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
                   />
                 </div>
 
-                {/* Refrigerio toggle */}
                 <div className="sm:col-span-2 flex items-center gap-2 pt-1">
                   <input
                     type="checkbox"
@@ -410,26 +373,25 @@ export default function AdminHorariosCrudPage() {
                     onChange={(e) => setFormData({ ...formData, hor_incluye_refrigerio: e.target.checked })}
                     className="w-4 h-4 text-blue-600 rounded"
                   />
-                  <label htmlFor="refrigerio" className="font-bold text-slate-700 cursor-pointer">
-                    Incluye servicio de refrigerio o snacks a bordo
+                  <label htmlFor="refrigerio" className="font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                    Incluye refrigerio o snacks a bordo
                   </label>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold shadow-md flex items-center gap-1.5 transition-all"
+                  className="px-5 py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-bold shadow-md flex items-center gap-1.5 transition-all"
                 >
-                  <Save className="w-4 h-4" />
+                  <Save className="w-3.5 h-3.5" />
                   <span>{editingId ? 'Guardar Cambios' : 'Crear Frecuencia'}</span>
                 </button>
               </div>
