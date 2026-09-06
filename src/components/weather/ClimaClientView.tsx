@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getEstaciones, getAllClimas } from '@/lib/db/store';
+import { getEstaciones } from '@/lib/db/store';
+import { INITIAL_PRONOSTICOS_CLIMA } from '@/lib/db/initial-data';
 import { TblEstacion, TblPronosticoClima } from '@/types/database';
 import { RefreshCw, Radio } from 'lucide-react';
 import SenamhiWeatherCard from '@/components/weather/SenamhiWeatherCard';
@@ -16,12 +17,16 @@ export default function ClimaClientView({
   initialClimas 
 }: ClimaClientViewProps) {
   const [estaciones, setEstaciones] = useState<TblEstacion[]>(initialEstaciones || []);
-  const [climas, setClimas] = useState<Record<string, TblPronosticoClima>>(initialClimas || {});
+  const [climas, setClimas] = useState<Record<string, TblPronosticoClima>>(initialClimas || INITIAL_PRONOSTICOS_CLIMA);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchLiveClimas = async (force: boolean = false) => {
-    setIsRefreshing(true);
+    // Only show loading spinner on the button if explicitly triggered by the user
+    if (force) {
+      setIsRefreshing(true);
+    }
     try {
+      // If force is true (button click), bypass cache; otherwise use Vercel 10-min edge cache
       const url = force ? `/api/senamhi?refresh=true&t=${Date.now()}` : '/api/senamhi';
       const res = await fetch(url, { cache: force ? 'no-store' : 'default' });
       if (res.ok) {
@@ -31,12 +36,11 @@ export default function ClimaClientView({
         }
       }
     } catch (e) {
-      console.error('Error fetching live weather:', e);
-      if (Object.keys(climas).length === 0) {
-        setClimas(getAllClimas());
-      }
+      console.error('Error fetching weather:', e);
     } finally {
-      setIsRefreshing(false);
+      if (force) {
+        setIsRefreshing(false);
+      }
     }
   };
 
@@ -44,8 +48,8 @@ export default function ClimaClientView({
     if (estaciones.length === 0) {
       setEstaciones(getEstaciones());
     }
-    // Always fetch live climas on client mount
-    fetchLiveClimas(true);
+    // Silent background fetch using 10-min edge cache (no flickering, no loading spinner)
+    fetchLiveClimas(false);
   }, []);
 
   return (
@@ -55,7 +59,7 @@ export default function ClimaClientView({
         <div className="space-y-1.5">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-800/80 border border-blue-600/50 text-blue-200 text-xs font-bold">
             <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span>SENAMHI • Previsión Meteorológica en Tiempo Real</span>
+            <span>SENAMHI • Previsión Meteorológica Oficial</span>
           </div>
           <h1 className="text-xl sm:text-3xl font-black tracking-tight">
             Monitoreo Climatológico por Estación
@@ -75,10 +79,10 @@ export default function ClimaClientView({
         </button>
       </div>
 
-      {/* Weather Stations Grid */}
+      {/* Weather Stations Grid - Instant render with zero flicker */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {estaciones.map((est) => {
-          const clima = climas[est.est_id];
+          const clima = climas[est.est_id] || INITIAL_PRONOSTICOS_CLIMA[est.est_id];
           if (!clima) return null;
 
           return (
