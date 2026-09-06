@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { TblEstacion, TblZonaTuristica } from '@/types/database';
-import { Footprints, Train, Navigation, AlertCircle, Compass } from 'lucide-react';
+import { Footprints, Train, Navigation, AlertCircle, Compass, Play, RotateCcw } from 'lucide-react';
 import { formatDistance, formatDurationMin } from '@/lib/utils';
 
 interface WalkingRouteMapProps {
@@ -15,7 +15,7 @@ interface WalkingRouteMapProps {
 export default function WalkingRouteMap({ 
   estacion, 
   zona, 
-  className = "h-[400px]",
+  className = "h-[450px] sm:h-[500px]",
   showElevationProfile = true 
 }: WalkingRouteMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -63,57 +63,58 @@ export default function WalkingRouteMap({
         // OpenStreetMap tile layer (100% free)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
-          attribution: '&copy; OpenStreetMap | Circuito a Pie',
+          attribution: '&copy; OpenStreetMap | Circuito Peatonal a Pie',
         }).addTo(map);
 
         // Custom DivIcons
         const stationIcon = L.divIcon({
           className: 'custom-station-pin',
           html: `
-            <div class="bg-red-700 text-white p-2 rounded-full shadow-xl border-2 border-white flex items-center justify-center w-9 h-9 transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition-transform">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="bg-red-700 text-white p-2.5 rounded-full shadow-2xl border-2 border-white flex items-center justify-center w-10 h-10 transform -translate-x-1/2 -translate-y-1/2 hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v2m-6 0h12m-6 6v3m-4 5h8m-8-2h8" />
               </svg>
             </div>
           `,
-          iconSize: [36, 36],
-          iconAnchor: [18, 18],
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
         });
 
         const touristIcon = L.divIcon({
           className: 'custom-tourist-pin',
           html: `
-            <div class="bg-emerald-600 text-white p-2 rounded-full shadow-xl border-2 border-white flex items-center justify-center w-9 h-9 transform -translate-x-1/2 -translate-y-1/2 animate-bounce">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="bg-emerald-600 text-white p-2.5 rounded-full shadow-2xl border-2 border-white flex items-center justify-center w-10 h-10 transform -translate-x-1/2 -translate-y-1/2 animate-bounce">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
           `,
-          iconSize: [36, 36],
-          iconAnchor: [18, 18],
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
         });
 
         // Add Station Marker
         const stationMarker = L.marker([estLat, estLng], { icon: stationIcon }).addTo(map);
         stationMarker.bindPopup(`
           <div class="p-1 font-sans">
-            <span class="inline-block bg-red-100 text-red-800 text-[10px] px-1.5 py-0.5 rounded font-bold mb-1">ESTACIÓN DE TREN</span>
-            <h4 class="font-bold text-gray-900 text-xs">${estacion.est_nombre}</h4>
-            <p class="text-[11px] text-gray-600 mt-0.5">Altitud: ${estacion.est_altitud_msnm} msnm</p>
+            <span class="inline-block bg-red-700 text-white text-[10px] px-2 py-0.5 rounded font-extrabold uppercase mb-1">Punto de Embarque</span>
+            <h4 class="font-extrabold text-sm text-slate-900">${estacion.est_nombre}</h4>
+            <p class="text-xs text-slate-600 mt-1">Altitud: <strong>${estacion.est_altitud_msnm} msnm</strong></p>
           </div>
         `);
 
-        // Add Tourist Marker
+        // Add Tourist Destination Marker
         const touristMarker = L.marker([zonLat, zonLng], { icon: touristIcon }).addTo(map);
         touristMarker.bindPopup(`
           <div class="p-1 font-sans">
-            <span class="inline-block bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded font-bold mb-1">DESTINO A PIE</span>
-            <h4 class="font-bold text-gray-900 text-xs">${zona.zon_nombre}</h4>
-            <p class="text-[11px] text-gray-600 mt-0.5">🚶 ${formatDistance(zona.zon_distancia_metros)} (~${formatDurationMin(zona.zon_tiempo_caminata_min)})</p>
+            <span class="inline-block bg-emerald-700 text-white text-[10px] px-2 py-0.5 rounded font-extrabold uppercase mb-1">Destino a Pie</span>
+            <h4 class="font-extrabold text-sm text-slate-900">${zona.zon_nombre}</h4>
+            <p class="text-xs text-slate-600 mt-1">🚶 <strong>${formatDistance(zona.zon_distancia_metros)}</strong> (~${formatDurationMin(zona.zon_tiempo_caminata_min)} a pie)</p>
           </div>
         `);
 
+        // Natural walking route curvature
         const midLat1 = estLat + (zonLat - estLat) * 0.35 + (zonLng - estLng) * 0.15;
         const midLng1 = estLng + (zonLng - estLng) * 0.35 - (zonLat - estLat) * 0.15;
         const midLat2 = estLat + (zonLat - estLat) * 0.70 - (zonLng - estLng) * 0.10;
@@ -126,10 +127,10 @@ export default function WalkingRouteMap({
           [zonLat, zonLng]
         ];
 
-        // Draw Outward Line (Green)
+        // Draw Outward Line (Green bold)
         L.polyline(outwardRoute, {
           color: '#059669',
-          weight: 4,
+          weight: 5,
           opacity: 0.9,
           lineJoin: 'round',
         }).addTo(map);
@@ -144,9 +145,9 @@ export default function WalkingRouteMap({
 
         L.polyline(returnRoute, {
           color: '#0284c7',
-          weight: 3.5,
-          dashArray: '5, 7',
-          opacity: 0.8,
+          weight: 4,
+          dashArray: '6, 8',
+          opacity: 0.85,
         }).addTo(map);
 
         const bounds = L.latLngBounds([
@@ -155,7 +156,7 @@ export default function WalkingRouteMap({
           [midLat1, midLng1],
           [midLat2, midLng2]
         ]);
-        map.fitBounds(bounds, { padding: [30, 30] });
+        map.fitBounds(bounds, { padding: [40, 40] });
 
       } catch (err) {
         console.error("Error Leaflet map:", err);
@@ -177,75 +178,102 @@ export default function WalkingRouteMap({
   const totalTiempoCaminataMin = zona.zon_tiempo_caminata_min * 2;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col transition-colors">
-      {/* Header Bar */}
-      <div className="bg-slate-900 dark:bg-slate-950 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-red-700 rounded-lg text-white">
-            <Footprints className="w-4 h-4" />
+    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col transition-colors">
+      {/* Header Bar with generous padding */}
+      <div className="bg-slate-950 text-white px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-red-700 rounded-xl text-white shadow-sm shrink-0">
+            <Footprints className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-xs sm:text-sm font-bold tracking-tight">Circuito Peatonal (Ida y Vuelta a Pie)</h3>
-            <p className="text-[11px] text-slate-300">
-              <span className="text-red-400 font-semibold">{estacion.est_nombre}</span> ➔ <span className="text-emerald-400 font-semibold">{zona.zon_nombre}</span>
+            <h3 className="text-sm sm:text-base font-black tracking-tight text-white">
+              Circuito Peatonal (Ida y Vuelta Exclusiva a Pie)
+            </h3>
+            <p className="text-xs text-slate-300 font-medium">
+              <span className="text-red-400 font-bold">{estacion.est_nombre}</span> ➔ <span className="text-emerald-400 font-bold">{zona.zon_nombre}</span>
             </p>
           </div>
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex items-center bg-slate-800 p-0.5 rounded-lg text-xs">
+        <div className="flex items-center bg-slate-900 p-1 rounded-xl text-xs border border-slate-800 self-start sm:self-auto">
           <button
             onClick={() => setActiveTab('mapa')}
-            className={`px-3 py-1 rounded-md font-semibold transition-all ${
+            className={`px-4 py-2 rounded-lg font-bold transition-all ${
               activeTab === 'mapa' 
-                ? 'bg-red-700 text-white shadow-sm' 
+                ? 'bg-red-700 text-white shadow-md' 
                 : 'text-slate-300 hover:text-white'
             }`}
           >
-            Mapa
+            Vista Mapa
           </button>
           <button
             onClick={() => setActiveTab('itinerario_pasos')}
-            className={`px-3 py-1 rounded-md font-semibold transition-all ${
+            className={`px-4 py-2 rounded-lg font-bold transition-all ${
               activeTab === 'itinerario_pasos' 
-                ? 'bg-red-700 text-white shadow-sm' 
+                ? 'bg-red-700 text-white shadow-md' 
                 : 'text-slate-300 hover:text-white'
             }`}
           >
-            Paso a Paso
+            Itinerario Paso a Paso
           </button>
         </div>
       </div>
 
-      {/* Metrics Banner */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 bg-slate-50 dark:bg-slate-950/70 border-b border-slate-200 dark:border-slate-800 text-center divide-x divide-slate-200 dark:divide-slate-800">
-        <div className="p-2.5 sm:p-3">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Tramo Ida</span>
-          <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">{formatDistance(zona.zon_distancia_metros)}</span>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 block">~{formatDurationMin(zona.zon_tiempo_caminata_min)}</span>
+      {/* Metrics Banner: spacious, accessible contrast */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-center divide-x divide-slate-200 dark:divide-slate-800">
+        <div className="p-4 sm:p-5">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider block">
+            Caminata Ida
+          </span>
+          <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-0.5 block">
+            {formatDistance(zona.zon_distancia_metros)}
+          </span>
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mt-0.5">
+            ~{formatDurationMin(zona.zon_tiempo_caminata_min)}
+          </span>
         </div>
-        <div className="p-2.5 sm:p-3">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Ida y Vuelta</span>
-          <span className="text-sm sm:text-base font-bold text-emerald-700 dark:text-emerald-400">{formatDistance(totalDistanciaIdaVuelta)}</span>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 block">~{formatDurationMin(totalTiempoCaminataMin)} total</span>
+
+        <div className="p-4 sm:p-5">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider block">
+            Circuito Completo
+          </span>
+          <span className="text-lg sm:text-xl font-black text-emerald-700 dark:text-emerald-400 mt-0.5 block">
+            {formatDistance(totalDistanciaIdaVuelta)}
+          </span>
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mt-0.5">
+            ~{formatDurationMin(totalTiempoCaminataMin)} (Ida y Retorno)
+          </span>
         </div>
-        <div className="p-2.5 sm:p-3">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Dificultad</span>
-          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold mt-0.5 ${
+
+        <div className="p-4 sm:p-5">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider block">
+            Nivel Dificultad
+          </span>
+          <span className={`inline-block px-3 py-1 rounded-full text-xs font-black mt-1 ${
             zona.zon_dificultad === 'Fácil' 
-              ? 'bg-green-100 dark:bg-green-950/60 text-green-800 dark:text-green-400'
+              ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700'
               : zona.zon_dificultad === 'Moderado'
-              ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-400'
-              : 'bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-400'
+              ? 'bg-amber-100 dark:bg-amber-950 text-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-700'
+              : 'bg-red-100 dark:bg-red-950 text-red-950 dark:text-red-200 border border-red-300 dark:border-red-700'
           }`}>
             {zona.zon_dificultad}
           </span>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 block">+{zona.zon_desnivel_metros}m desnivel</span>
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mt-1">
+            +{zona.zon_desnivel_metros}m desnivel
+          </span>
         </div>
-        <div className="p-2.5 sm:p-3">
-          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Estancia</span>
-          <span className="text-sm sm:text-base font-bold text-blue-700 dark:text-blue-400">{formatDurationMin(zona.zon_tiempo_sugerido_visita_min)}</span>
-          <span className="text-[10px] text-slate-500 dark:text-slate-400 block">sugerida</span>
+
+        <div className="p-4 sm:p-5">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider block">
+            Estancia en Sitio
+          </span>
+          <span className="text-lg sm:text-xl font-black text-blue-700 dark:text-blue-400 mt-0.5 block">
+            {formatDurationMin(zona.zon_tiempo_sugerido_visita_min)}
+          </span>
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 block mt-0.5">
+            Recomendada
+          </span>
         </div>
       </div>
 
@@ -254,95 +282,100 @@ export default function WalkingRouteMap({
         <div className="relative">
           <div ref={mapContainerRef} className={`w-full ${className} z-0`} />
           
-          {/* Map Legend Overlay */}
-          <div className="absolute bottom-3 left-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-2 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 text-[11px] z-10 space-y-1 max-w-[220px]">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">Estación (Partida/Fin)</span>
+          {/* Map Legend Overlay with high contrast */}
+          <div className="absolute bottom-4 left-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 text-xs z-10 space-y-2 max-w-[260px]">
+            <div className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-[11px] border-b border-slate-100 dark:border-slate-800 pb-1.5">
+              Leyenda de Ruta Peatonal
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span>
-              <span className="font-semibold text-slate-800 dark:text-slate-200">Zona Turística</span>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-red-600 shrink-0"></span>
+              <span className="font-bold text-slate-800 dark:text-slate-100">Estación (Partida / Llegada)</span>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 text-[10px]">
-              <span className="w-3.5 h-1 bg-emerald-600 inline-block rounded"></span>
-              <span>Ruta a pie de ida</span>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-emerald-600 shrink-0"></span>
+              <span className="font-bold text-slate-800 dark:text-slate-100">Atractivo a Pie</span>
             </div>
-            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 text-[10px]">
-              <span className="w-3.5 h-0.5 border-b border-dashed border-sky-600 inline-block"></span>
-              <span>Ruta retorno</span>
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-[11px]">
+              <span className="w-4 h-1.5 bg-emerald-600 rounded shrink-0"></span>
+              <span>Sendero de ida (caminata)</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-[11px]">
+              <span className="w-4 h-1 border-b-2 border-dashed border-sky-600 shrink-0"></span>
+              <span>Sendero retorno a estación</span>
             </div>
           </div>
         </div>
       ) : (
         /* Step by Step Itinerary Guide */
-        <div className="p-4 sm:p-6 bg-slate-50 dark:bg-slate-950/50 space-y-4 max-h-[420px] overflow-y-auto">
-          <ol className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-3 sm:ml-4 space-y-4">
-            {/* Step 1 */}
-            <li className="ml-5">
-              <span className="absolute -left-2.5 flex items-center justify-center w-5 h-5 bg-red-600 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-[10px] font-bold">
+        <div className="p-6 sm:p-8 bg-slate-50 dark:bg-slate-950/60 space-y-5 max-h-[500px] overflow-y-auto">
+          <ol className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-4 space-y-6">
+            {/* Departure */}
+            <li className="ml-6">
+              <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-red-700 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-xs font-bold">
                 1
               </span>
-              <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-                <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <Train className="w-3.5 h-3.5 text-red-600" />
-                  Salida desde {estacion.est_nombre}
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+                <span className="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">
+                  Punto de Salida a Pie
+                </span>
+                <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                  Desembarque en {estacion.est_nombre}
                 </h4>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
-                  Desembarque del tren. Salir hacia el eje peatonal señalizado.
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Llegada en tren PeruRail. Salida hacia el portal peatonal señalizado para iniciar la caminata hacia {zona.zon_nombre}.
                 </p>
               </div>
             </li>
 
             {/* Waypoints */}
             {zona.zon_puntos_interes.map((pto, idx) => (
-              <li key={idx} className="ml-5">
-                <span className="absolute -left-2.5 flex items-center justify-center w-5 h-5 bg-amber-500 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-[10px] font-bold">
+              <li key={idx} className="ml-6">
+                <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-amber-500 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-xs font-bold">
                   {idx + 2}
                 </span>
-                <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <Navigation className="w-3.5 h-3.5 text-amber-500" />
-                    Punto de Interés: {pto}
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+                  <h4 className="font-extrabold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <Navigation className="w-4 h-4 text-amber-500 shrink-0" />
+                    Punto de Interés en el Sendero: {pto}
                   </h4>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
-                    Parada intermedia recomendada para fotografías o descanso.
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Hito señalizado durante la caminata recomendado para descanso, observación del paisaje andino o fotografías.
                   </p>
                 </div>
               </li>
             ))}
 
             {/* Arrival */}
-            <li className="ml-5">
-              <span className="absolute -left-2.5 flex items-center justify-center w-5 h-5 bg-emerald-600 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-[10px] font-bold">
+            <li className="ml-6">
+              <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-emerald-600 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-xs font-bold">
                 {zona.zon_puntos_interes.length + 2}
               </span>
-              <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-emerald-300 dark:border-emerald-800 shadow-2xs bg-emerald-50/30 dark:bg-emerald-950/20">
-                <h4 className="font-bold text-xs sm:text-sm text-emerald-900 dark:text-emerald-400 flex items-center gap-1.5">
-                  <Footprints className="w-3.5 h-3.5 text-emerald-600" />
-                  Llegada a {zona.zon_nombre}
+              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-emerald-300 dark:border-emerald-800 shadow-sm bg-emerald-50/40 dark:bg-emerald-950/30 space-y-2">
+                <h4 className="font-black text-sm sm:text-base text-emerald-950 dark:text-emerald-200 flex items-center gap-2">
+                  <Footprints className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  Llegada al Destino: {zona.zon_nombre}
                 </h4>
-                <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">
+                <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                   {zona.zon_descripcion}
                 </p>
-                <div className="mt-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                  ⏱️ Permanencia sugerida: {formatDurationMin(zona.zon_tiempo_sugerido_visita_min)}
+                <div className="pt-2 border-t border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                  ⏱️ Tiempo de permanencia y visita sugerido: {formatDurationMin(zona.zon_tiempo_sugerido_visita_min)}
                 </div>
               </div>
             </li>
 
             {/* Return */}
-            <li className="ml-5">
-              <span className="absolute -left-2.5 flex items-center justify-center w-5 h-5 bg-sky-600 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-[10px] font-bold">
+            <li className="ml-6">
+              <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-sky-600 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-xs font-bold">
                 {zona.zon_puntos_interes.length + 3}
               </span>
-              <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-                <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <Train className="w-3.5 h-3.5 text-sky-600" />
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
+                <h4 className="font-extrabold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <Train className="w-4 h-4 text-sky-600 shrink-0" />
                   Retorno a pie a la Estación {estacion.est_nombre}
                 </h4>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
-                  Caminata de vuelta ({formatDistance(zona.zon_distancia_metros)}, ~{formatDurationMin(zona.zon_tiempo_caminata_min)}) para abordar el tren de retorno.
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Caminata de vuelta ({formatDistance(zona.zon_distancia_metros)}, ~{formatDurationMin(zona.zon_tiempo_caminata_min)}) para abordar con suficiente anticipación el tren de retorno de PeruRail.
                 </p>
               </div>
             </li>
@@ -350,16 +383,16 @@ export default function WalkingRouteMap({
         </div>
       )}
 
-      {/* Recommendations Box */}
+      {/* Recommendations Box with High Contrast */}
       {showElevationProfile && zona.zon_recomendaciones.length > 0 && (
-        <div className="p-3 bg-slate-100 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-700 dark:text-slate-300">
-          <span className="font-bold flex items-center gap-1 text-slate-900 dark:text-slate-100">
-            <AlertCircle className="w-3.5 h-3.5 text-red-600" />
-            Recomendaciones:
+        <div className="p-4 sm:p-5 bg-slate-100 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2 text-xs text-slate-800 dark:text-slate-200">
+          <span className="font-black flex items-center gap-1.5 text-slate-900 dark:text-white shrink-0">
+            <AlertCircle className="w-4 h-4 text-red-600" />
+            Recomendaciones Oficiales de Seguridad:
           </span>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5">
             {zona.zon_recomendaciones.map((rec, i) => (
-              <span key={i} className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+              <span key={i} className="bg-white dark:bg-slate-900 px-3 py-1 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 font-semibold shadow-2xs">
                 • {rec}
               </span>
             ))}

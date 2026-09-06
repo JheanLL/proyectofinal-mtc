@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { TblHorarioTren, TblEstacion } from '@/types/database';
-import { Train, Clock, Check, Coffee } from 'lucide-react';
+import { Train, Clock, Check, Coffee, ArrowRight } from 'lucide-react';
 import { formatCurrencyPEN, formatCurrencyUSD, formatDurationMin } from '@/lib/utils';
 
 interface PeruRailScheduleCardProps {
@@ -25,52 +25,52 @@ export default function PeruRailScheduleCard({
   const getServiceBadgeStyle = (servicio: string) => {
     switch (servicio) {
       case 'Expedition':
-        return 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800';
+        return 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-800';
       case 'Vistadome':
-        return 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800';
+        return 'bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-700';
       case 'Vistadome Observatory':
-        return 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-800';
+        return 'bg-purple-100 dark:bg-purple-950 text-purple-900 dark:text-purple-200 border-purple-300 dark:border-purple-700';
       case 'Hiram Bingham':
-        return 'bg-yellow-100 dark:bg-yellow-950/60 text-yellow-900 dark:text-yellow-300 border-yellow-400 dark:border-yellow-800 font-serif';
+        return 'bg-yellow-100 dark:bg-yellow-950 text-yellow-950 dark:text-yellow-200 border-yellow-400 dark:border-yellow-700 font-serif';
       case 'Tren Local':
-        return 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800';
+        return 'bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700';
       default:
-        return 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+        return 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700';
     }
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
-      {/* Header */}
-      <div className={`px-4 sm:px-5 py-3 text-white flex items-center justify-between ${
+    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
+      {/* Header with spacious padding */}
+      <div className={`px-5 sm:px-6 py-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
         tipo === 'ida' 
-          ? 'bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900' 
-          : 'bg-gradient-to-r from-sky-950 to-slate-900 dark:from-slate-950 dark:to-slate-900'
+          ? 'bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950' 
+          : 'bg-gradient-to-r from-slate-900 via-sky-950 to-slate-950'
       }`}>
-        <div className="flex items-center gap-2.5">
-          <div className="p-1.5 bg-red-700 rounded-lg text-white">
-            <Train className="w-4 h-4" />
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-red-700 rounded-xl text-white shadow-sm shrink-0">
+            <Train className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 bg-white/20 rounded">
+            <span className="text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 bg-white/20 rounded-md">
               {tipo === 'ida' ? 'TREN DE IDA (PeruRail)' : 'TREN DE RETORNO (PeruRail)'}
             </span>
-            <h4 className="text-xs sm:text-sm font-bold mt-0.5">
+            <h4 className="text-sm sm:text-base font-extrabold mt-1 text-white">
               {origen.est_nombre} ➔ {destino.est_nombre}
             </h4>
           </div>
         </div>
 
-        <div className="text-[11px] text-slate-300 font-medium">
-          {horarios.length} frecuencias
+        <div className="text-xs text-slate-300 font-semibold bg-white/10 px-3 py-1 rounded-xl self-start sm:self-auto">
+          {horarios.length} frecuencias disponibles
         </div>
       </div>
 
-      {/* Schedules List */}
-      <div className="p-3 sm:p-4 space-y-2.5">
+      {/* Schedules List with generous spacing */}
+      <div className="p-4 sm:p-6 space-y-4">
         {horarios.length === 0 ? (
-          <div className="text-center py-6 text-slate-500 dark:text-slate-400 text-xs">
-            No se encontraron frecuencias ferroviarias para este tramo.
+          <div className="text-center py-10 text-slate-600 dark:text-slate-300 text-xs">
+            No se encontraron frecuencias ferroviarias programadas para este tramo.
           </div>
         ) : (
           horarios.map((hor) => {
@@ -79,68 +79,78 @@ export default function PeruRailScheduleCard({
               <div
                 key={hor.hor_id}
                 onClick={() => onSelectHorario(hor)}
-                className={`relative p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                className={`relative p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-5 ${
                   isSelected
-                    ? 'border-red-600 bg-red-50/40 dark:bg-red-950/30 shadow-2xs'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-950/40 hover:bg-slate-50/70 dark:hover:bg-slate-850'
+                    ? 'border-red-600 bg-red-50/60 dark:bg-red-950/40 shadow-sm ring-2 ring-red-600/30'
+                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-950/50 hover:bg-slate-50/80 dark:hover:bg-slate-850'
                 }`}
               >
-                {/* Selected Indicator */}
+                {/* Selected Indicator Badge */}
                 {isSelected && (
-                  <div className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-0.5 shadow-2xs">
-                    <Check className="w-3.5 h-3.5" />
+                  <div className="absolute -top-2.5 -right-2.5 bg-red-600 text-white rounded-full p-1 shadow-md">
+                    <Check className="w-4 h-4 stroke-[3]" />
                   </div>
                 )}
 
-                {/* Train Info */}
-                <div className="space-y-1 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={`text-[11px] px-2 py-0.2 rounded-full font-bold border ${getServiceBadgeStyle(hor.hor_servicio_tipo)}`}>
+                {/* Train Info & Departure/Arrival Timeline */}
+                <div className="space-y-2.5 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${getServiceBadgeStyle(hor.hor_servicio_tipo)}`}>
                       {hor.hor_servicio_tipo}
                     </span>
-                    <span className="text-[11px] font-mono font-medium text-slate-500 dark:text-slate-400">
-                      #{hor.hor_codigo_tren}
+                    <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">
+                      Tren #{hor.hor_codigo_tren}
                     </span>
                     {hor.hor_incluye_refrigerio && (
-                      <span className="text-[10px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.2 rounded border border-amber-200 dark:border-amber-800 flex items-center gap-1 font-medium">
-                        <Coffee className="w-2.5 h-2.5" /> Snacks
+                      <span className="text-[11px] font-semibold text-amber-900 dark:text-amber-200 bg-amber-100 dark:bg-amber-950/70 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 flex items-center gap-1">
+                        <Coffee className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Snacks incluidos
                       </span>
                     )}
                   </div>
 
-                  {/* Hours timeline */}
-                  <div className="flex items-center gap-3 pt-0.5">
-                    <div>
-                      <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">{hor.hor_hora_salida}</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{origen.est_ciudad}</div>
+                  {/* Hours timeline: spacious with prominent cities and duration */}
+                  <div className="flex items-center gap-4 pt-1">
+                    <div className="min-w-[80px]">
+                      <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                        {hor.hor_hora_salida}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[120px]">
+                        {origen.est_ciudad}
+                      </div>
                     </div>
 
-                    <div className="flex flex-col items-center px-1">
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-0.5">
-                        <Clock className="w-2.5 h-2.5 text-slate-400" />
+                    <div className="flex-1 flex flex-col items-center px-2">
+                      <span className="text-xs text-slate-600 dark:text-slate-300 font-bold flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                         {formatDurationMin(hor.hor_duracion_min)}
                       </span>
-                      <div className="w-16 sm:w-24 h-0.5 bg-slate-300 dark:bg-slate-700 relative my-0.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-600 absolute -top-0.5 -left-0.5"></div>
-                        <div className="w-1.5 h-1.5 rounded-full bg-slate-700 dark:bg-slate-400 absolute -top-0.5 -right-0.5"></div>
+                      <div className="w-full max-w-[140px] sm:max-w-[180px] h-1 bg-slate-200 dark:bg-slate-700 rounded-full relative my-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-red-600 absolute -top-0.75 -left-1 ring-2 ring-white dark:ring-slate-900"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-800 dark:bg-slate-300 absolute -top-0.75 -right-1 ring-2 ring-white dark:ring-slate-900"></div>
                       </div>
-                      <span className="text-[9px] text-slate-400">Directo</span>
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">
+                        Ruta Directa
+                      </span>
                     </div>
 
-                    <div>
-                      <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">{hor.hor_hora_llegada}</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{destino.est_ciudad}</div>
+                    <div className="min-w-[80px] text-right">
+                      <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                        {hor.hor_hora_llegada}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold truncate max-w-[120px]">
+                        {destino.est_ciudad}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Pricing and Action */}
-                <div className="sm:text-right w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800 flex sm:flex-col items-center sm:items-end justify-between">
+                {/* Pricing and Action Button */}
+                <div className="md:text-right pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800 flex md:flex-col items-center md:items-end justify-between gap-3 shrink-0">
                   <div>
-                    <div className="text-base sm:text-lg font-bold text-red-700 dark:text-red-400">
+                    <div className="text-lg sm:text-xl font-black text-red-700 dark:text-red-400 tracking-tight">
                       {formatCurrencyPEN(hor.hor_tarifa_regular_pen)}
                     </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                    <div className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                       Turista: {formatCurrencyUSD(hor.hor_tarifa_turista_usd)}
                     </div>
                   </div>
@@ -151,13 +161,13 @@ export default function PeruRailScheduleCard({
                       e.stopPropagation();
                       onSelectHorario(hor);
                     }}
-                    className={`mt-1 text-xs font-bold px-3 py-1 rounded-lg transition-all ${
+                    className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm ${
                       isSelected
                         ? 'bg-red-700 text-white'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-red-700 hover:text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-red-700 hover:text-white'
                     }`}
                   >
-                    {isSelected ? 'Elegido' : 'Elegir'}
+                    {isSelected ? '✓ Seleccionado' : 'Seleccionar'}
                   </button>
                 </div>
               </div>
