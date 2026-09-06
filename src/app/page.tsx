@@ -177,13 +177,13 @@ export default function HomePage() {
           </div>
 
           {/* Preference Pill buttons */}
-          <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <button
               onClick={() => setSelectedCategoria('todos')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
                 selectedCategoria === 'todos'
-                  ? 'bg-red-700 text-white shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  ? 'bg-red-700 text-white border-red-700 shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-black dark:hover:text-white border-slate-300 dark:border-slate-700'
               }`}
             >
               Todas ({zonas.length})
@@ -197,15 +197,19 @@ export default function HomePage() {
                 <button
                   key={pref.pre_id}
                   onClick={() => setSelectedCategoria(pref.pre_codigo)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
                     isSelected
-                      ? 'bg-slate-900 dark:bg-slate-700 text-white shadow-sm ring-2 ring-red-600'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 border border-slate-200 dark:border-slate-700'
+                      ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100 shadow-sm ring-2 ring-red-600'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-950 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-black dark:hover:text-white border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 shadow-2xs'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
-                  <span>{pref.pre_nombre}</span>
-                  <span className="text-[10px] opacity-70">({count})</span>
+                  <Icon className="w-3.5 h-3.5 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-slate-950 dark:text-slate-100 group-hover:text-black dark:group-hover:text-white font-extrabold">
+                    {pref.pre_nombre}
+                  </span>
+                  <span className="text-[11px] font-black text-slate-700 dark:text-slate-300 group-hover:text-black dark:group-hover:text-white">
+                    ({count})
+                  </span>
                 </button>
               );
             })}
