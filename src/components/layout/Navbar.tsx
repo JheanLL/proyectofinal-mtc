@@ -17,20 +17,72 @@ import {
 } from 'lucide-react';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import RoleSwitcher from '@/components/ui/RoleSwitcher';
+import { useApp } from '@/components/providers/ThemeProvider';
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { role } = useApp();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const navLinks = [
-    { href: '/', label: 'Inicio', icon: Compass },
-    { href: '/planificador', label: 'Asesor Turístico', icon: Sparkles, highlight: true },
-    { href: '/zonas', label: 'Zonas a Pie', icon: MapPin },
-    { href: '/estaciones', label: 'Trenes & Estaciones', icon: Train },
-    { href: '/clima', label: 'Clima en Vivo', icon: SunMedium },
-    { href: '/informe', label: 'Informes', icon: FileText },
-    { href: '/admin', label: 'Gestión', icon: Settings },
-  ];
+  const getNavLinks = () => {
+    switch (role) {
+      case 'turista':
+        return [
+          { href: '/', label: 'Inicio', icon: Compass },
+          { href: '/planificador', label: 'Asesor Turístico', icon: Sparkles, highlight: true },
+          { href: '/zonas', label: 'Zonas a Pie', icon: MapPin },
+          { href: '/estaciones', label: 'Trenes & Estaciones', icon: Train },
+          { href: '/clima', label: 'Clima en Vivo', icon: SunMedium },
+          { href: '/informe', label: 'Mis Informes', icon: FileText },
+        ];
+      case 'travel_group':
+        return [
+          { href: '/', label: 'Inicio', icon: Compass },
+          { href: '/zonas', label: 'Zonas a Pie', icon: MapPin },
+          { href: '/estaciones', label: 'Consultar Estaciones', icon: Train },
+          { href: '/admin/zonas', label: 'CRUD Zonas a Pie', icon: MapPin, highlight: true },
+          { href: '/admin', label: 'Matriz Asignación', icon: Settings },
+        ];
+      case 'perurail':
+        return [
+          { href: '/', label: 'Inicio', icon: Compass },
+          { href: '/estaciones', label: 'Red Ferroviaria', icon: Train },
+          { href: '/admin/horarios', label: 'CRUD Horarios & Tarifas', icon: Train, highlight: true },
+          { href: '/clima', label: 'Clima en Estaciones', icon: SunMedium },
+          { href: '/admin', label: 'Panel Operativo', icon: Settings },
+        ];
+      case 'admin':
+      default:
+        return [
+          { href: '/', label: 'Inicio', icon: Compass },
+          { href: '/planificador', label: 'Asesor Turístico', icon: Sparkles, highlight: true },
+          { href: '/zonas', label: 'Zonas a Pie', icon: MapPin },
+          { href: '/estaciones', label: 'Trenes & Estaciones', icon: Train },
+          { href: '/clima', label: 'Clima en Vivo', icon: SunMedium },
+          { href: '/informe', label: 'Informes', icon: FileText },
+          { href: '/admin', label: 'Gestión', icon: Settings },
+        ];
+    }
+  };
+
+  const navLinks = getNavLinks();
+
+  const getCtaButton = () => {
+    switch (role) {
+      case 'turista':
+        return { href: '/planificador', label: 'Planificar Ruta', icon: Sparkles };
+      case 'travel_group':
+        return { href: '/admin/zonas', label: '+ Gestionar Zonas', icon: MapPin };
+      case 'perurail':
+        return { href: '/admin/horarios', label: '+ Gestionar Horarios', icon: Train };
+      case 'admin':
+      default:
+        return { href: '/admin', label: 'Panel Gestión', icon: Settings };
+    }
+  };
+
+  const cta = getCtaButton();
+  const CtaIcon = cta.icon;
 
   const isActive = (path: string) => {
     if (path === '/' && pathname === '/') return true;
@@ -105,11 +157,11 @@ export default function Navbar() {
           {/* Right Action & Mobile Toggle */}
           <div className="flex items-center gap-2">
             <Link
-              href="/planificador"
+              href={cta.href}
               className="hidden sm:flex bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition-all items-center gap-1.5"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Planificar Ruta</span>
+              <CtaIcon className="w-3.5 h-3.5" />
+              <span>{cta.label}</span>
             </Link>
 
             {/* Mobile Menu Toggle */}
@@ -159,12 +211,12 @@ export default function Navbar() {
           
           <div className="pt-2">
             <Link
-              href="/planificador"
+              href={cta.href}
               onClick={() => setIsMobileMenuOpen(false)}
               className="w-full bg-red-700 text-white text-sm font-bold py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>Planificar Itinerario</span>
+              <CtaIcon className="w-4 h-4" />
+              <span>{cta.label}</span>
             </Link>
           </div>
         </div>

@@ -41,10 +41,10 @@ async function fetchLiveWeatherForStation(estacionId: string, forceFresh: boolea
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${estacion.est_latitud}&longitude=${estacion.est_longitud}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max&timezone=auto`;
     
-    // If forceFresh is requested, bypass Next.js cache; otherwise cache for 60s to protect rate limits
+    // If forceFresh is requested, bypass Next.js cache; otherwise cache for 600s (10 min) to protect rate limits
     const fetchOptions: RequestInit = forceFresh 
       ? { cache: 'no-store' } 
-      : { next: { revalidate: 60 } };
+      : { next: { revalidate: 600 } };
 
     const res = await fetch(url, fetchOptions);
     if (!res.ok) throw new Error(`API fetch error: ${res.status}`);
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
   const headers = {
     'Cache-Control': isRefresh 
       ? 'no-store, no-cache, must-revalidate' 
-      : 'public, s-maxage=60, stale-while-revalidate=120',
+      : 'public, s-maxage=600, stale-while-revalidate=1200',
   };
 
   if (estacionId) {
