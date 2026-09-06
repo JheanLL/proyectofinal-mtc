@@ -29,7 +29,7 @@ export default function Navbar() {
       case 'turista':
         return [
           { href: '/', label: 'Inicio', icon: Compass },
-          { href: '/planificador', label: 'Asesor Turístico', icon: Sparkles, highlight: true },
+          { href: '/planificador', label: 'Asesor Turístico', icon: Sparkles },
           { href: '/zonas', label: 'Zonas a Pie', icon: MapPin },
           { href: '/estaciones', label: 'Trenes & Estaciones', icon: Train },
           { href: '/clima', label: 'Clima en Vivo', icon: SunMedium },
@@ -40,14 +40,14 @@ export default function Navbar() {
           { href: '/', label: 'Inicio', icon: Compass },
           { href: '/zonas', label: 'Zonas a Pie', icon: MapPin },
           { href: '/estaciones', label: 'Consultar Estaciones', icon: Train },
-          { href: '/admin/zonas', label: 'CRUD Zonas a Pie', icon: MapPin, highlight: true },
+          { href: '/admin/zonas', label: 'CRUD Zonas a Pie', icon: MapPin },
           { href: '/admin', label: 'Matriz Asignación', icon: Settings },
         ];
       case 'perurail':
         return [
           { href: '/', label: 'Inicio', icon: Compass },
           { href: '/estaciones', label: 'Red Ferroviaria', icon: Train },
-          { href: '/admin/horarios', label: 'CRUD Horarios & Tarifas', icon: Train, highlight: true },
+          { href: '/admin/horarios', label: 'CRUD Horarios & Tarifas', icon: Train },
           { href: '/clima', label: 'Clima en Estaciones', icon: SunMedium },
           { href: '/admin', label: 'Panel Operativo', icon: Settings },
         ];
@@ -55,7 +55,7 @@ export default function Navbar() {
       default:
         return [
           { href: '/', label: 'Inicio', icon: Compass },
-          { href: '/planificador', label: 'Asesor Turístico', icon: Sparkles, highlight: true },
+          { href: '/planificador', label: 'Asesor Turístico', icon: Sparkles },
           { href: '/zonas', label: 'Zonas a Pie', icon: MapPin },
           { href: '/estaciones', label: 'Trenes & Estaciones', icon: Train },
           { href: '/clima', label: 'Clima en Vivo', icon: SunMedium },
@@ -142,12 +142,10 @@ export default function Navbar() {
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                     active
                       ? 'bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 shadow-2xs font-bold'
-                      : link.highlight
-                      ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-sm hover:opacity-95'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${active ? 'text-red-700 dark:text-red-400' : link.highlight ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 ${active ? 'text-red-700 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`} />
                   <span>{link.label}</span>
                 </Link>
               );
