@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { getEstaciones } from '@/lib/db/store';
-import { INITIAL_PRONOSTICOS_CLIMA } from '@/lib/db/initial-data';
 import { TblEstacion, TblPronosticoClima } from '@/types/database';
 import { RefreshCw, Radio } from 'lucide-react';
 import SenamhiWeatherCard from '@/components/weather/SenamhiWeatherCard';
@@ -17,16 +16,14 @@ export default function ClimaClientView({
   initialClimas 
 }: ClimaClientViewProps) {
   const [estaciones, setEstaciones] = useState<TblEstacion[]>(initialEstaciones || []);
-  const [climas, setClimas] = useState<Record<string, TblPronosticoClima>>(initialClimas || INITIAL_PRONOSTICOS_CLIMA);
+  const [climas, setClimas] = useState<Record<string, TblPronosticoClima>>(initialClimas || {});
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchLiveClimas = async (force: boolean = false) => {
-    // Only show loading spinner on the button if explicitly triggered by the user
     if (force) {
       setIsRefreshing(true);
     }
     try {
-      // If force is true (button click), bypass cache; otherwise use Vercel 10-min edge cache
       const url = force ? `/api/senamhi?refresh=true&t=${Date.now()}` : '/api/senamhi';
       const res = await fetch(url, { cache: force ? 'no-store' : 'default' });
       if (res.ok) {
@@ -36,7 +33,7 @@ export default function ClimaClientView({
         }
       }
     } catch (e) {
-      console.error('Error fetching weather:', e);
+      console.error('Error fetching live weather:', e);
     } finally {
       if (force) {
         setIsRefreshing(false);
@@ -48,9 +45,11 @@ export default function ClimaClientView({
     if (estaciones.length === 0) {
       setEstaciones(getEstaciones());
     }
-    // Silent background fetch using 10-min edge cache (no flickering, no loading spinner)
-    fetchLiveClimas(false);
-  }, []);
+    // Only fetch on client if server did not supply initial climas
+    if (!initialClimas || Object.keys(initialClimas).length === 0) {
+      fetchLiveClimas(false);
+    }
+  }, [initialClimas]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 transition-colors duration-200">
@@ -79,10 +78,10 @@ export default function ClimaClientView({
         </button>
       </div>
 
-      {/* Weather Stations Grid - Instant render with zero flicker */}
+      {/* Weather Stations Grid: Server-rendered live data, zero flicker */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {estaciones.map((est) => {
-          const clima = climas[est.est_id] || INITIAL_PRONOSTICOS_CLIMA[est.est_id];
+          const clima = climas[est.est_id];
           if (!clima) return null;
 
           return (
