@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { INITIAL_ESTACIONES, INITIAL_PRONOSTICOS_CLIMA } from '@/lib/db/initial-data';
 import { TblPronosticoClima, CondicionCielo, NivelAlertaClima } from '@/types/database';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 function mapWmoToCondition(code: number): CondicionCielo {
   if (code === 0) return 'Despejado';
   if (code === 1 || code === 2) return 'Parcialmente Nublado';
@@ -31,14 +34,20 @@ function getAlertLevel(uv: number, rainProb: number): { nivel: NivelAlertaClima;
   };
 }
 
-async function fetchLiveWeatherForStation(estacionId: string): Promise<TblPronosticoClima | null> {
+async function fetchLiveWeatherForStation(estacionId: string, forceFresh: boolean = false): Promise<TblPronosticoClima | null> {
   const estacion = INITIAL_ESTACIONES.find(e => e.est_id === estacionId);
   if (!estacion) return null;
 
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${estacion.est_latitud}&longitude=${estacion.est_longitud}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max&timezone=auto`;
-    const res = await fetch(url, { next: { revalidate: 300 } }); // cache 5 min
-    if (!res.ok) throw new Error('API fetch error');
+    
+    // If forceFresh is requested, bypass Next.js cache; otherwise cache for 60s to protect rate limits
+    const fetchOptions: RequestInit = forceFresh 
+      ? { cache: 'no-store' } 
+      : { next: { revalidate: 60 } };
+
+    const res = await fetch(url, fetchOptions);
+    if (!res.ok) throw new Error(`API fetch error: ${res.status}`);
     const data = await res.json();
 
     const current = data.current;
@@ -75,10 +84,10 @@ async function fetchLiveWeatherForStation(estacionId: string): Promise<TblPronos
         'Botella de agua recargable'
       ],
       cli_fuente_senamhi: `SENAMHI EMA ${estacion.est_ciudad} (API En Vivo)`,
-      cli_fecha_actualizacion: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (En tiempo real)',
+      cli_fecha_actualizacion: new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' (En tiempo real)',
     };
-  } catch {
-    // Return fallback seed data if external API is unreachable
+  } catch (err) {
+    console.error(`Error fetching live weather for ${estacionId}:`, err);
     return INITIAL_PRONOSTICOS_CLIMA[estacionId] || null;
   }
 }
@@ -86,25 +95,33 @@ async function fetchLiveWeatherForStation(estacionId: string): Promise<TblPronos
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const estacionId = searchParams.get('estacionId');
+  const isRefresh = searchParams.get('refresh') === 'true' || searchParams.has('t');
+
+  const headers = {
+    'Cache-Control': isRefresh 
+      ? 'no-store, no-cache, must-revalidate' 
+      : 'public, s-maxage=60, stale-while-revalidate=120',
+  };
 
   if (estacionId) {
-    const liveWeather = await fetchLiveWeatherForStation(estacionId);
+    const liveWeather = await fetchLiveWeatherForStation(estacionId, isRefresh);
     if (liveWeather) {
       return NextResponse.json({
         success: true,
         fuente: 'SENAMHI / Red Meteorológica',
         data: liveWeather,
-      });
+        timestamp: new Date().toISOString(),
+      }, { headers });
     }
     return NextResponse.json(
       { success: false, error: 'Estación no encontrada' },
-      { status: 404 }
+      { status: 404, headers }
     );
   }
 
   // Fetch all stations
   const promises = INITIAL_ESTACIONES.map(async (est) => {
-    const weather = await fetchLiveWeatherForStation(est.est_id);
+    const weather = await fetchLiveWeatherForStation(est.est_id, isRefresh);
     return [est.est_id, weather || INITIAL_PRONOSTICOS_CLIMA[est.est_id]];
   });
 
@@ -116,5 +133,5 @@ export async function GET(request: NextRequest) {
     fuente: 'SENAMHI / Red Meteorológica',
     data: weatherMap,
     timestamp: new Date().toISOString(),
-  });
+  }, { headers });
 }

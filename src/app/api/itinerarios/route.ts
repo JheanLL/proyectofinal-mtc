@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { TblItinerarioConsulta } from '@/types/database';
 
 // In-memory store for serverless instance + client localstorage
+export const dynamic = 'force-dynamic';
 const mockItinerarios: TblItinerarioConsulta[] = [];
 
 export async function GET(request: NextRequest) {

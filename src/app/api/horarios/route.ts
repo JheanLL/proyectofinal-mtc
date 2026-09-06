@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { INITIAL_HORARIOS_TREN } from '@/lib/db/initial-data';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const origen = searchParams.get('origen');
@@ -21,5 +23,10 @@ export async function GET(request: NextRequest) {
     fuente: 'PeruRail',
     data: result,
     total: result.length,
+    timestamp: new Date().toISOString(),
+  }, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+    }
   });
 }
