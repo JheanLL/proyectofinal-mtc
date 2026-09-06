@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TblPronosticoClima, TblEstacion } from '@/types/database';
 import { 
   Sun, 
@@ -27,11 +27,18 @@ export default function SenamhiWeatherCard({ clima: initialClima, estacion, comp
   const [clima, setClima] = useState<TblPronosticoClima>(initialClima);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Keep state updated when parent receives fresh live data from API
+  useEffect(() => {
+    if (initialClima) {
+      setClima(initialClima);
+    }
+  }, [initialClima]);
+
   const handleRefreshLiveWeather = async () => {
     if (!estacion) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/senamhi?estacionId=${estacion.est_id}`);
+      const res = await fetch(`/api/senamhi?estacionId=${estacion.est_id}&refresh=true&t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         if (json.data) {

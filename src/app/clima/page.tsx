@@ -15,10 +15,11 @@ export default function ClimaPage() {
   const [climas, setClimas] = useState<Record<string, TblPronosticoClima>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchLiveClimas = async () => {
+  const fetchLiveClimas = async (force: boolean = false) => {
     setIsRefreshing(true);
     try {
-      const res = await fetch('/api/senamhi');
+      const url = force ? `/api/senamhi?refresh=true&t=${Date.now()}` : '/api/senamhi';
+      const res = await fetch(url, { cache: force ? 'no-store' : 'default' });
       if (res.ok) {
         const json = await res.json();
         if (json.data) {
@@ -57,7 +58,7 @@ export default function ClimaPage() {
         </div>
 
         <button
-          onClick={fetchLiveClimas}
+          onClick={() => fetchLiveClimas(true)}
           disabled={isRefreshing}
           className="bg-white hover:bg-blue-50 text-blue-950 font-bold text-xs px-4 py-2.5 rounded-2xl shadow-md flex items-center gap-2 transition-all self-start md:self-auto disabled:opacity-60"
         >

@@ -730,7 +730,7 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
     },
     cli_recomendacion_ropa: ['Casaca cortaviento', 'Gorro/sombrero para sol', 'Ropa en capas', 'Zapatillas de paseo'],
     cli_fuente_senamhi: 'SENAMHI - Dirección Zonal 12 Cusco',
-    cli_fecha_actualizacion: '2026-08-29 14:30:00 (Actualización Automática Diaria)',
+    cli_fecha_actualizacion: 'Actualización en Tiempo Real (SENAMHI)',
   },
   est_02: {
     cli_id: 'cli_por_02',
@@ -751,7 +751,7 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
     },
     cli_recomendacion_ropa: ['Abrigo térmico matutino', 'Lentes de sol', 'Calzado cómodo'],
     cli_fuente_senamhi: 'SENAMHI - Estación Agrometeorológica Poroy',
-    cli_fecha_actualizacion: '2026-08-29 14:30:00 (Actualización Automática Diaria)',
+    cli_fecha_actualizacion: 'Actualización en Tiempo Real (SENAMHI)',
   },
   est_03: {
     cli_id: 'cli_oll_03',
@@ -772,7 +772,7 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
     },
     cli_recomendacion_ropa: ['Polo de algodón transpirable', 'Pantalón de trekking desmontable', 'Gafas de sol', 'Botella de agua'],
     cli_fuente_senamhi: 'SENAMHI - Estación Meteorológica Ollantaytambo',
-    cli_fecha_actualizacion: '2026-08-29 14:30:00 (Actualización Automática Diaria)',
+    cli_fecha_actualizacion: 'Actualización en Tiempo Real (SENAMHI)',
   },
   est_04: {
     cli_id: 'cli_mac_04',
@@ -793,7 +793,7 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
     },
     cli_recomendacion_ropa: ['Impermeable o poncho para lluvia', 'Repelente para mosquitos', 'Zapatos de trekking impermeables', 'Ropa fresca'],
     cli_fuente_senamhi: 'SENAMHI - Estación Machu Picchu Pueblo',
-    cli_fecha_actualizacion: '2026-08-29 14:30:00 (Actualización Automática Diaria)',
+    cli_fecha_actualizacion: 'Actualización en Tiempo Real (SENAMHI)',
   },
   est_05: {
     cli_id: 'cli_uru_05',
@@ -814,7 +814,7 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
     },
     cli_recomendacion_ropa: ['Ropa cómoda', 'Protector solar', 'Sombrero'],
     cli_fuente_senamhi: 'SENAMHI - Estación Urubamba',
-    cli_fecha_actualizacion: '2026-08-29 14:30:00 (Actualización Automática Diaria)',
+    cli_fecha_actualizacion: 'Actualización en Tiempo Real (SENAMHI)',
   },
   est_06: {
     cli_id: 'cli_pun_06',
@@ -835,7 +835,7 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
     },
     cli_recomendacion_ropa: ['Casaca de plumas o polar grueso', 'Guantes y chullo andino', 'Protector solar labial y facial'],
     cli_fuente_senamhi: 'SENAMHI - Dirección Zonal 13 Puno',
-    cli_fecha_actualizacion: '2026-08-29 14:30:00 (Actualización Automática Diaria)',
+    cli_fecha_actualizacion: 'Actualización en Tiempo Real (SENAMHI)',
   }
 };
 
