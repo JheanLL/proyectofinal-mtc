@@ -37,21 +37,47 @@ Este proyecto está optimizado para desplegarse en **Vercel** sin costo alguno:
 - Widget climático oficial SENAMHI en tiempo real.
 - Selector de billetes de tren PeruRail.
 
-### 4. Módulo de Informes
-- **Para Usuarios**: Informe consolidado oficial exportable a **PDF** y formateado para **impresión HTML** con membrete institucional del MTC, SENAMHI, PeruRail y Travel Group Perú, desglose de costos y QR/código de itinerario.
+### 4. Módulo de Informes & Compartición Multicanal
+- **Para Usuarios y Turistas (Con o Sin Cuenta)**: Informe consolidado oficial exportable a **PDF** y formateado para **impresión HTML** con membrete institucional del MTC, SENAMHI, PeruRail y Travel Group Perú, desglose de costos y QR/código de itinerario.
+- **URLs Protegidas No Adivinables**: Generación de tokens de 64 bits de entropía (`MTC-[hex16]`) para consulta segura en **Aiven MySQL** desde PC o móvil sin exponer datos a ataques de enumeración.
+- **Compartición Directa**: Soporte de Web Share API en celulares (Android/iOS) y enlaces directos a WhatsApp Web, Telegram, X (Twitter), Facebook y Correo Electrónico.
+- **OpenGraph Dinámico**: Generación en tiempo real de tarjetas de previsualización (1200x630) para redes sociales vía `next/og`.
 - **Para Travel Group Perú / Admin**: Matriz de asignación de estaciones y zonas con exportación e impresión.
 
 ---
 
-## 🗄️ Convención de Base de Datos con Prefijos
+## 📋 Especificación de Ingeniería de Software (HU & RF)
 
-Cumpliendo los lineamientos de diseño de bases de datos:
+### Historias de Usuario (HU)
+- **HU-01 a HU-07**: Consulta de zonas turísticas a pie, filtros por preferencias, visualización de rutas georreferenciadas, consulta meteorológica en vivo SENAMHI, gestión logística de horarios PeruRail y auditoría de operadores.
+- **HU-08 (Compartir Informe Turístico mediante URL Segura No Adivinable y Redes Sociales)**:
+  - *Como:* Turista sin cuenta o Administrador MTC.
+  - *Quiero:* Compartir mi informe consolidado a través de una URL protegida no adivinable y accesos rápidos a WhatsApp, Telegram, X, Facebook o Correo.
+  - *Para:* Que cualquier acompañante o usuario en PC o smartphone pueda consultar el itinerario en tiempo real sin necesidad de estar autenticado.
+  - *Criterios de Aceptación:*
+    1. Generación de token criptográfico de alta entropía (64 bits, e.g., `MTC-8f3a9e2d1c4b8e3a`).
+    2. Persistencia automática en Aiven MySQL y sincronización tolerante a fallos con `localStorage`.
+    3. Acceso público inmediato de solo lectura desde cualquier navegador web.
+    4. Generación de tarjetas OpenGraph dinámicas en WhatsApp, Facebook y Telegram.
+
+### Requerimientos Funcionales (RF)
+- **RF-09 (Persistencia y Consulta de Informes en Aiven MySQL mediante Tokens No Adivinables)**:
+  - El sistema debe registrar todos los informes generados en la tabla `tbl_itinerario_consulta` de Aiven MySQL asignando un identificador alfanumérico no enumerable que garantice la privacidad e impida la recolección masiva de datos ajenos (mitigación de ID enumeration attacks).
+- **RF-10 (Módulo de Compartición Multicanal y Metadatos OpenGraph)**:
+  - El sistema debe proveer una interfaz de compartición con soporte para la Web Share API en dispositivos móviles, accesos directos a WhatsApp, Telegram, X, Facebook y Correo, copiado rápido al portapapeles con confirmación visual, y emisión de etiquetas OpenGraph (`og:title`, `og:description`, `og:image`) con imagen dinámica de 1200x630.
+
+---
+
+## 🗄️ Convención de Base de Datos con Prefijos & Aiven MySQL Cloud
+
+Cumpliendo los lineamientos de diseño de bases de datos relacionales en **Aiven MySQL**:
 - `tbl_estacion` (`est_id`, `est_codigo`, `est_nombre`, `est_ciudad`, `est_altitud_msnm`, `est_latitud`, `est_longitud`, `est_servicios`, etc.)
 - `tbl_zona_turistica` (`zon_id`, `zon_estacion_id`, `zon_nombre`, `zon_categoria`, `zon_distancia_metros`, `zon_tiempo_caminata_min`, `zon_dificultad`, etc.)
 - `tbl_horario_tren` (`hor_id`, `hor_codigo_tren`, `hor_estacion_origen_id`, `hor_estacion_destino_id`, `hor_servicio_tipo`, `hor_tarifa_regular_pen`, etc.)
 - `tbl_pronostico_clima` (`cli_id`, `cli_estacion_id`, `cli_fecha`, `cli_temp_actual_c`, `cli_alerta_meteorologica`, `cli_fuente_senamhi`, etc.)
 - `tbl_preferencia_turistica` (`pre_id`, `pre_codigo`, `pre_nombre`, `pre_icono`, etc.)
-- `tbl_itinerario_consulta` (`iti_id`, `iti_codigo`, `iti_fecha_creacion`, `iti_usuario_nombre`, `iti_costo_total_pen`, etc.)
+- `tbl_itinerario_consulta` (`iti_id`, `iti_codigo`, `iti_fecha_creacion`, `iti_usuario_nombre`, `iti_usuario_email`, `iti_estacion_origen_id`, `iti_estacion_destino_id`, `iti_zona_turistica_id`, `iti_horario_ida_id`, `iti_horario_retorno_id`, `iti_distancia_total_caminata_metros`, `iti_costo_total_pen`, etc.)
+  - **Token Seguro**: El campo `iti_codigo` está indexado como `VARCHAR(64) UNIQUE` para garantizar búsqueda $O(1)$ sin colisiones y accesibilidad universal mediante URL no adivinable.
 
 ---
 

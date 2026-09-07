@@ -27,7 +27,8 @@ import {
   ArrowRight,
   TrendingUp,
   Printer,
-  RotateCcw
+  RotateCcw,
+  History
 } from 'lucide-react';
 import { formatCurrencyPEN, formatDistance, formatDurationMin } from '@/lib/utils';
 
@@ -151,7 +152,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Entity Navigation Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Travel Group Peru */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border-2 border-emerald-200 dark:border-emerald-900/60 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3.5">
           <div className="space-y-1.5">
@@ -223,6 +224,31 @@ export default function AdminDashboardPage() {
             className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
           >
             <span>Monitor de APIs</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {/* Card 4: Auditoría & Control RBAC */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border-2 border-purple-200 dark:border-purple-900/60 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3.5">
+          <div className="space-y-1.5">
+            <div className="w-9 h-9 rounded-2xl bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 flex items-center justify-center font-bold">
+              <History className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 px-2 py-0.5 rounded">
+              Auditoría & RBAC
+            </span>
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+              Bitácora de Cambios
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+              Historial de creaciones y modificaciones por rol con inspección de payloads JSON en Aiven MySQL.
+            </p>
+          </div>
+          <Link
+            href="/admin/auditoria"
+            className="w-full bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <span>Ver Auditoría</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

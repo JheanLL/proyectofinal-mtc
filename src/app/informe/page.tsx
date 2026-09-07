@@ -33,6 +33,7 @@ function InformeContent() {
 
   const [codigoBusqueda, setCodigoBusqueda] = useState('');
   const [activeItinerario, setActiveItinerario] = useState<TblItinerarioConsulta | null>(null);
+  const [isLoadingCodigo, setIsLoadingCodigo] = useState(false);
 
   useEffect(() => {
     const loadedIti = getItinerarios();
@@ -45,44 +46,90 @@ function InformeContent() {
     setZonas(loadedZon);
     setHorarios(loadedHor);
 
-    // Fetch from API
+    // 1. Fetch recent itinerarios from Aiven MySQL
     fetch('/api/itinerarios')
       .then(res => res.json())
       .then(json => {
         if (json.data && json.data.length > 0) {
-          // Merge API itineraries with store
           setItinerarios(prev => {
             const map = new Map<string, TblItinerarioConsulta>();
-            prev.forEach(i => map.set(i.iti_codigo, i));
-            (json.data as TblItinerarioConsulta[]).forEach(i => map.set(i.iti_codigo, i));
+            prev.forEach(i => map.set(i.iti_codigo.toLowerCase(), i));
+            (json.data as TblItinerarioConsulta[]).forEach(i => map.set(i.iti_codigo.toLowerCase(), i));
             return Array.from(map.values());
           });
         }
       })
       .catch(() => {});
 
+    // 2. Si viene un código en la URL (enlace compartido desde Aiven o redes)
     const qCodigo = searchParams.get('codigo');
     if (qCodigo) {
-      const found = loadedIti.find(i => i.iti_codigo.toLowerCase() === qCodigo.toLowerCase() || i.iti_id === qCodigo);
-      if (found) {
-        setActiveItinerario(found);
-        setCodigoBusqueda(found.iti_codigo);
+      const cleanQ = qCodigo.trim();
+      setCodigoBusqueda(cleanQ);
+
+      const foundLocal = loadedIti.find(i => 
+        i.iti_codigo.toLowerCase() === cleanQ.toLowerCase() || i.iti_id === cleanQ
+      );
+
+      if (foundLocal) {
+        setActiveItinerario(foundLocal);
+      } else {
+        // Consultar directamente a Aiven MySQL en la nube
+        setIsLoadingCodigo(true);
+        fetch(`/api/itinerarios?codigo=${encodeURIComponent(cleanQ)}`)
+          .then(res => res.json())
+          .then(json => {
+            if (json.success && json.data) {
+              const itiData = json.data as TblItinerarioConsulta;
+              setActiveItinerario(itiData);
+              // Cachear en el historial local del visitante sin cuenta
+              setItinerarios(prev => {
+                const filtered = prev.filter(i => i.iti_codigo.toLowerCase() !== itiData.iti_codigo.toLowerCase());
+                return [itiData, ...filtered];
+              });
+            } else if (loadedIti.length > 0) {
+              setActiveItinerario(loadedIti[0]);
+            }
+          })
+          .catch(() => {
+            if (loadedIti.length > 0) setActiveItinerario(loadedIti[0]);
+          })
+          .finally(() => setIsLoadingCodigo(false));
       }
     } else if (loadedIti.length > 0) {
       setActiveItinerario(loadedIti[0]);
     }
   }, [searchParams]);
 
-  const handleSearchCodigo = (e: React.FormEvent) => {
+  const handleSearchCodigo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!codigoBusqueda.trim()) return;
-    const found = getItinerarioByCodigo(codigoBusqueda.trim()) || 
-      itinerarios.find(i => i.iti_codigo.toLowerCase() === codigoBusqueda.trim().toLowerCase());
+    const queryTerm = codigoBusqueda.trim();
+    if (!queryTerm) return;
+
+    const foundLocal = getItinerarioByCodigo(queryTerm) || 
+      itinerarios.find(i => i.iti_codigo.toLowerCase() === queryTerm.toLowerCase());
     
-    if (found) {
-      setActiveItinerario(found);
-    } else {
-      alert(`No se encontró un itinerario con el código "${codigoBusqueda}".`);
+    if (foundLocal) {
+      setActiveItinerario(foundLocal);
+      return;
+    }
+
+    // Buscar en Aiven MySQL
+    setIsLoadingCodigo(true);
+    try {
+      const res = await fetch(`/api/itinerarios?codigo=${encodeURIComponent(queryTerm)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const foundAiven = json.data as TblItinerarioConsulta;
+        setActiveItinerario(foundAiven);
+        setItinerarios(prev => [foundAiven, ...prev.filter(i => i.iti_codigo !== foundAiven.iti_codigo)]);
+      } else {
+        alert(`No se encontró un itinerario con el código "${queryTerm}" en la base de datos Aiven.`);
+      }
+    } catch {
+      alert('Error de conexión al consultar el informe en Aiven.');
+    } finally {
+      setIsLoadingCodigo(false);
     }
   };
 
@@ -128,15 +175,16 @@ function InformeContent() {
               type="text"
               value={codigoBusqueda}
               onChange={(e) => setCodigoBusqueda(e.target.value)}
-              placeholder="Buscar por código de itinerario (Ej: TRAIN-8924)..."
+              placeholder="Buscar por código seguro (Ej: MTC-8f3a9e2d1c4b8e3a o TRAIN-8924)..."
               className="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-600 focus:outline-none"
             />
           </div>
           <button
             type="submit"
-            className="bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-2xs"
+            disabled={isLoadingCodigo}
+            className="bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-2xs disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
-            Buscar Informe
+            {isLoadingCodigo ? 'Consultando Aiven...' : 'Buscar Informe'}
           </button>
         </form>
 

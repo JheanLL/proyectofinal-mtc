@@ -13,12 +13,14 @@ import {
   Phone
 } from 'lucide-react';
 import { formatCurrencyPEN, formatCurrencyUSD, formatDurationMin, formatDistance } from '@/lib/utils';
+import TrainJourneyMap from '@/components/trains/TrainJourneyMap';
 
 export default function EstacionesPage() {
   const [estaciones, setEstaciones] = useState<TblEstacion[]>([]);
   const [horarios, setHorarios] = useState<TblHorarioTren[]>([]);
   const [zonas, setZonas] = useState<TblZonaTuristica[]>([]);
   const [selectedEstacionId, setSelectedEstacionId] = useState<string>('est_04');
+  const [selectedTrainForSimulation, setSelectedTrainForSimulation] = useState<TblHorarioTren | null>(null);
 
   useEffect(() => {
     setEstaciones(getEstaciones());
@@ -207,8 +209,9 @@ export default function EstacionesPage() {
                   .map((h) => {
                     const orig = estaciones.find(e => e.est_id === h.hor_estacion_origen_id);
                     const dest = estaciones.find(e => e.est_id === h.hor_estacion_destino_id);
+                    const isSelected = selectedTrainForSimulation?.hor_id === h.hor_id;
                     return (
-                      <div key={h.hor_id} className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                      <div key={h.hor_id} className={`py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-colors ${isSelected ? 'bg-red-50/60 dark:bg-red-950/30 px-3 rounded-2xl' : ''}`}>
                         <div>
                           <div className="flex items-center gap-1.5">
                             <span className="font-bold text-slate-900 dark:text-white">{orig?.est_ciudad} ➔ {dest?.est_ciudad}</span>
@@ -222,15 +225,43 @@ export default function EstacionesPage() {
                           </p>
                         </div>
 
-                        <div className="sm:text-right">
+                        <div className="flex items-center gap-3 sm:self-auto">
                           <span className="font-bold text-red-700 dark:text-red-400 text-xs sm:text-sm block">
                             {formatCurrencyPEN(h.hor_tarifa_regular_pen)}
                           </span>
+                          <button
+                            onClick={() => setSelectedTrainForSimulation(isSelected ? null : h)}
+                            className={`text-[11px] font-bold px-3 py-1.5 rounded-xl border transition-all ${
+                              isSelected
+                                ? 'bg-red-700 text-white border-red-700 shadow-sm'
+                                : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-red-600 hover:text-white'
+                            }`}
+                          >
+                            {isSelected ? 'Cerrar Mapa' : '🗺️ Simular'}
+                          </button>
                         </div>
                       </div>
                     );
                   })}
               </div>
+
+              {/* Render Train Journey Map if selected */}
+              {selectedTrainForSimulation && (
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                  {(() => {
+                    const orig = estaciones.find(e => e.est_id === selectedTrainForSimulation.hor_estacion_origen_id) || activeEstacion;
+                    const dest = estaciones.find(e => e.est_id === selectedTrainForSimulation.hor_estacion_destino_id) || activeEstacion;
+                    return (
+                      <TrainJourneyMap
+                        horario={selectedTrainForSimulation}
+                        origen={orig}
+                        destino={dest}
+                        onClose={() => setSelectedTrainForSimulation(null)}
+                      />
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           </div>
         )}

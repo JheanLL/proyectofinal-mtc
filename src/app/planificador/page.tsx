@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
   getEstaciones, 
@@ -32,12 +32,14 @@ import {
 import WalkingRouteMap from '@/components/maps/WalkingRouteMap';
 import SenamhiWeatherCard from '@/components/weather/SenamhiWeatherCard';
 import PeruRailScheduleCard from '@/components/trains/PeruRailScheduleCard';
+import TrainJourneyMap from '@/components/trains/TrainJourneyMap';
 import ConsolidatedTouristReport from '@/components/reports/ConsolidatedTouristReport';
 import { formatDistance, formatDurationMin, formatCurrencyPEN } from '@/lib/utils';
 import confetti from 'canvas-confetti';
 
 function PlanificadorContent() {
   const searchParams = useSearchParams();
+  const wizardContainerRef = useRef<HTMLDivElement>(null);
 
   // Master Data
   const [estaciones, setEstaciones] = useState<TblEstacion[]>([]);
@@ -60,6 +62,23 @@ function PlanificadorContent() {
 
   // Final Report State
   const [generatedItinerarioCodigo, setGeneratedItinerarioCodigo] = useState<string>('');
+  const [trainMapMode, setTrainMapMode] = useState<'ida' | 'retorno'>('ida');
+
+  // Robust instant scroll to top on step transition to prevent jumping down to footer
+  const goToStep = (step: number) => {
+    setCurrentStep(step);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    if (wizardContainerRef.current) {
+      wizardContainerRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }
+  };
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    if (wizardContainerRef.current) {
+      wizardContainerRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
+    }
+  }, [currentStep]);
 
   // Load Initial Data and handle query params
   useEffect(() => {
@@ -106,6 +125,29 @@ function PlanificadorContent() {
     }
   }, [searchParams]);
 
+  // Destination stations that have active direct railway connections with the chosen origin
+  const validDestinos = useMemo(() => {
+    if (estaciones.length === 0) return [];
+    return estaciones.filter(d => 
+      d.est_id !== origenEstacionId && 
+      horarios.some(h => 
+        (h.hor_estacion_origen_id === origenEstacionId && h.hor_estacion_destino_id === d.est_id) ||
+        (h.hor_estacion_origen_id === d.est_id && h.hor_estacion_destino_id === origenEstacionId)
+      )
+    );
+  }, [estaciones, origenEstacionId, horarios]);
+
+  // Automatically ensure destination is valid whenever origin or validDestinos change
+  useEffect(() => {
+    if (validDestinos.length > 0) {
+      const isCurrentDestValid = validDestinos.some(d => d.est_id === destinoEstacionId);
+      if (!isCurrentDestValid) {
+        setDestinoEstacionId(validDestinos[0].est_id);
+        setSelectedZonaId('');
+      }
+    }
+  }, [validDestinos, destinoEstacionId]);
+
   // Fetch Live Weather when destination station changes
   useEffect(() => {
     if (!destinoEstacionId) return;
@@ -134,14 +176,45 @@ function PlanificadorContent() {
     selectedPreferencias.length === 0 || selectedPreferencias.includes(z.zon_categoria)
   );
 
-  const selectedZona = zonas.find(z => z.zon_id === selectedZonaId) || (zonasDisponibles[0] || allZonasInDestino[0]);
+  // Automatically guarantee selectedZona is always a valid zone of the selected destination station
+  const selectedZona = 
+    (selectedZonaId ? allZonasInDestino.find(z => z.zon_id === selectedZonaId) : null)
+    || zonasDisponibles[0] 
+    || allZonasInDestino[0]
+    || zonas[0];
 
-  // PeruRail schedules
+  // Auto-select first zone when destination or filters change
+  useEffect(() => {
+    if (allZonasInDestino.length > 0) {
+      const existsInCurrentDest = allZonasInDestino.some(z => z.zon_id === selectedZonaId);
+      if (!existsInCurrentDest) {
+        const fallback = zonasDisponibles[0] || allZonasInDestino[0];
+        if (fallback) {
+          setSelectedZonaId(fallback.zon_id);
+        }
+      }
+    }
+  }, [destinoEstacionId, zonas, selectedPreferencias]);
+
+  // PeruRail schedules for selected corridor
   const horariosIda = horarios.filter(h => h.hor_estacion_origen_id === origenEstacionId && h.hor_estacion_destino_id === destinoEstacionId);
   const horariosRetorno = horarios.filter(h => h.hor_estacion_origen_id === destinoEstacionId && h.hor_estacion_destino_id === origenEstacionId);
 
-  const selectedHorarioIda = horarios.find(h => h.hor_id === selectedHorarioIdaId) || horariosIda[0];
-  const selectedHorarioRetorno = horarios.find(h => h.hor_id === selectedHorarioRetornoId) || horariosRetorno[0];
+  // Auto-sync default selected trains so they are always available immediately
+  useEffect(() => {
+    if (horariosIda.length > 0 && (!selectedHorarioIdaId || !horariosIda.some(h => h.hor_id === selectedHorarioIdaId))) {
+      setSelectedHorarioIdaId(horariosIda[0].hor_id);
+    }
+  }, [horariosIda, selectedHorarioIdaId]);
+
+  useEffect(() => {
+    if (horariosRetorno.length > 0 && (!selectedHorarioRetornoId || !horariosRetorno.some(h => h.hor_id === selectedHorarioRetornoId))) {
+      setSelectedHorarioRetornoId(horariosRetorno[0].hor_id);
+    }
+  }, [horariosRetorno, selectedHorarioRetornoId]);
+
+  const selectedHorarioIda = horariosIda.find(h => h.hor_id === selectedHorarioIdaId) || horariosIda[0];
+  const selectedHorarioRetorno = horariosRetorno.find(h => h.hor_id === selectedHorarioRetornoId) || horariosRetorno[0];
 
   const climaSenamhi = liveClima || getClimaByEstacion(destinoEstacionId);
 
@@ -185,12 +258,12 @@ function PlanificadorContent() {
       fetch('/api/itinerarios', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(saved),
       });
     } catch {}
 
     setGeneratedItinerarioCodigo(saved.iti_codigo);
-    setCurrentStep(4);
+    goToStep(4);
 
     confetti({
       particleCount: 100,
@@ -200,13 +273,13 @@ function PlanificadorContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 transition-colors duration-200">
+    <div ref={wizardContainerRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8 transition-colors duration-200">
       {/* Top Header & Wizard Stepper with Ample Spacing */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-100 dark:bg-red-950/70 text-red-800 dark:text-red-300 text-xs font-bold mb-2">
             <Radio className="w-4 h-4 text-emerald-500 animate-pulse" />
-            <span>Asesor de Rutas a Pie & Tren</span>
+            <span>Planificador Oficial de Itinerarios MTC</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Planificador de Itinerarios Turísticos
@@ -226,7 +299,7 @@ function PlanificadorContent() {
           ].map((s) => (
             <button
               key={s.step}
-              onClick={() => setCurrentStep(s.step)}
+              onClick={() => goToStep(s.step)}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs ${
                 currentStep === s.step
                   ? 'bg-red-700 text-white shadow-md'
@@ -357,8 +430,8 @@ function PlanificadorContent() {
             {/* Step 1 Actions */}
             <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
-                onClick={() => setCurrentStep(2)}
-                className="bg-red-700 hover:bg-red-800 text-white text-xs sm:text-sm font-bold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2 transition-all"
+                onClick={() => goToStep(2)}
+                className="bg-red-700 hover:bg-red-800 text-white text-xs sm:text-sm font-bold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer hover:shadow-lg"
               >
                 <span>Continuar a Estaciones & Zonas</span>
                 <ArrowRight className="w-4 h-4" />
@@ -382,7 +455,7 @@ function PlanificadorContent() {
               </p>
             </div>
 
-            {/* Station Selection: Spacious Panels */}
+            {/* Station Selection: Connected Railway Corridors */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Origin Station */}
               <div className="bg-slate-50 dark:bg-slate-950 p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
@@ -392,7 +465,22 @@ function PlanificadorContent() {
                 </label>
                 <select
                   value={origenEstacionId}
-                  onChange={(e) => setOrigenEstacionId(e.target.value)}
+                  onChange={(e) => {
+                    const newOrigId = e.target.value;
+                    setOrigenEstacionId(newOrigId);
+                    // Filter connected destinations for the newly selected origin
+                    const connected = estaciones.filter(d => 
+                      d.est_id !== newOrigId && 
+                      horarios.some(h => 
+                        (h.hor_estacion_origen_id === newOrigId && h.hor_estacion_destino_id === d.est_id) ||
+                        (h.hor_estacion_origen_id === d.est_id && h.hor_estacion_destino_id === newOrigId)
+                      )
+                    );
+                    if (connected.length > 0 && !connected.some(d => d.est_id === destinoEstacionId)) {
+                      setDestinoEstacionId(connected[0].est_id);
+                      setSelectedZonaId('');
+                    }
+                  }}
                   className="w-full text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-600 focus:outline-none"
                 >
                   {estaciones.map(e => (
@@ -406,7 +494,7 @@ function PlanificadorContent() {
                 </span>
               </div>
 
-              {/* Destination Station */}
+              {/* Destination Station (Filtered by direct rail corridor connectivity) */}
               <div className="bg-red-50/40 dark:bg-red-950/20 p-5 sm:p-6 rounded-3xl border border-red-200 dark:border-red-900/50 space-y-2">
                 <label className="text-xs sm:text-sm font-extrabold text-red-900 dark:text-red-300 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -420,15 +508,27 @@ function PlanificadorContent() {
                   }}
                   className="w-full text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 border border-red-300 dark:border-red-800 rounded-2xl px-4 py-3 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-600 focus:outline-none"
                 >
-                  {estaciones.map(e => (
-                    <option key={e.est_id} value={e.est_id}>
-                      {e.est_nombre} ({e.est_ciudad} • {e.est_altitud_msnm} msnm)
-                    </option>
-                  ))}
+                  {validDestinos.length > 0 ? (
+                    validDestinos.map(e => {
+                      const directCount = horarios.filter(h => h.hor_estacion_origen_id === origenEstacionId && h.hor_estacion_destino_id === e.est_id).length;
+                      return (
+                        <option key={e.est_id} value={e.est_id}>
+                          {e.est_nombre} ({e.est_ciudad} • {e.est_altitud_msnm} msnm) — {directCount} tren(es) directo(s)
+                        </option>
+                      );
+                    })
+                  ) : (
+                    estaciones.filter(e => e.est_id !== origenEstacionId).map(e => (
+                      <option key={e.est_id} value={e.est_id}>
+                        {e.est_nombre} ({e.est_ciudad} • {e.est_altitud_msnm} msnm)
+                      </option>
+                    ))
+                  )}
                 </select>
-                <span className="text-xs text-red-700 dark:text-red-300 block">
-                  Estación donde desembarcas para realizar el circuito a pie.
-                </span>
+                <div className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-bold">
+                  <Check className="w-3.5 h-3.5 stroke-[3] shrink-0" />
+                  <span>Conexión ferroviaria activa: solo se listan destinos con vías férreas directas desde {estacionOrigen?.est_nombre}.</span>
+                </div>
               </div>
             </div>
 
@@ -513,25 +613,29 @@ function PlanificadorContent() {
             </div>
 
             {/* Interactive Map */}
-            {selectedZona && estacionDestino && (
+            {selectedZona && estacionDestino ? (
               <div className="pt-4">
                 <WalkingRouteMap estacion={estacionDestino} zona={selectedZona} />
+              </div>
+            ) : (
+              <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+                Selecciona una zona turística para visualizar el circuito peatonal a pie.
               </div>
             )}
 
             {/* Step 2 Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
-                onClick={() => setCurrentStep(1)}
-                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-bold px-5 py-3 rounded-2xl flex items-center gap-2 transition-all"
+                onClick={() => goToStep(1)}
+                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-bold px-5 py-3 rounded-2xl flex items-center gap-2 transition-all cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Volver a Preferencias</span>
               </button>
 
               <button
-                onClick={() => setCurrentStep(3)}
-                className="bg-red-700 hover:bg-red-800 text-white text-xs sm:text-sm font-bold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2 transition-all"
+                onClick={() => goToStep(3)}
+                className="bg-red-700 hover:bg-red-800 text-white text-xs sm:text-sm font-bold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer hover:shadow-lg"
               >
                 <span>Continuar a Horarios de Tren</span>
                 <ArrowRight className="w-4 h-4" />
@@ -548,35 +652,120 @@ function PlanificadorContent() {
             <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
               <span className="text-xs font-extrabold uppercase tracking-wider text-red-700 dark:text-red-400">Paso 3 de 4</span>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
-                Selecciona los Horarios y Servicios de Tren (PeruRail)
+                Simulación del Recorrido Ferroviario y Selección de Trenes
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
-                Elige tu tren de ida desde {estacionOrigen.est_nombre} y tu tren de retorno desde {estacionDestino.est_nombre}.
+                Visualiza la animación del tren sobre la vía férrea andina entre {estacionOrigen.est_nombre} y {estacionDestino.est_nombre}, y confirma tus frecuencias de ida y retorno.
               </p>
             </div>
 
-            {/* Spacious 2-Column Schedule Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-              <div>
-                <PeruRailScheduleCard
-                  horarios={horariosIda}
-                  origen={estacionOrigen}
-                  destino={estacionDestino}
-                  horarioSeleccionadoId={selectedHorarioIda?.hor_id}
-                  onSelectHorario={(h) => setSelectedHorarioIdaId(h.hor_id)}
-                  tipo="ida"
-                />
+            {/* Prominent Train Journey Simulation & Corridor Map AT TOP OF STEP 3 */}
+            {(selectedHorarioIda || selectedHorarioRetorno) && (
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <Train className="w-5 h-5 text-red-600 animate-pulse" />
+                      <span>Simulador en Tiempo Real y Ruta Ferroviaria MTC</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Monitorea el tránsito del tren, altitud, paradas intermedias y velocidad estimada en la red férrea.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 self-start sm:self-auto shadow-xs">
+                    <button
+                      onClick={() => setTrainMapMode('ida')}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        trainMapMode === 'ida'
+                          ? 'bg-red-700 text-white shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      🚆 Tren de Ida ({selectedHorarioIda?.hor_codigo_tren || 'Ida'})
+                    </button>
+                    <button
+                      onClick={() => setTrainMapMode('retorno')}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        trainMapMode === 'retorno'
+                          ? 'bg-red-700 text-white shadow-sm'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      🚆 Tren de Retorno ({selectedHorarioRetorno?.hor_codigo_tren || 'Retorno'})
+                    </button>
+                  </div>
+                </div>
+
+                {trainMapMode === 'ida' && selectedHorarioIda && (
+                  <TrainJourneyMap
+                    key={`train-journey-ida-${selectedHorarioIda.hor_id}`}
+                    horario={selectedHorarioIda}
+                    origen={estacionOrigen}
+                    destino={estacionDestino}
+                  />
+                )}
+
+                {trainMapMode === 'retorno' && selectedHorarioRetorno && (
+                  <TrainJourneyMap
+                    key={`train-journey-retorno-${selectedHorarioRetorno.hor_id}`}
+                    horario={selectedHorarioRetorno}
+                    origen={estacionDestino}
+                    destino={estacionOrigen}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* PeruRail Schedules Selection Cards */}
+            <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    Frecuencias y Horarios de Tren Disponibles (PeruRail)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Selecciona tu boleto de ida y de retorno. Al elegir un servicio, la simulación superior se actualizará automáticamente.
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <PeruRailScheduleCard
-                  horarios={horariosRetorno}
-                  origen={estacionDestino}
-                  destino={estacionOrigen}
-                  horarioSeleccionadoId={selectedHorarioRetorno?.hor_id}
-                  onSelectHorario={(h) => setSelectedHorarioRetornoId(h.hor_id)}
-                  tipo="retorno"
-                />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+                <div>
+                  <PeruRailScheduleCard
+                    horarios={horariosIda}
+                    origen={estacionOrigen}
+                    destino={estacionDestino}
+                    horarioSeleccionadoId={selectedHorarioIda?.hor_id}
+                    onSelectHorario={(h) => {
+                      setSelectedHorarioIdaId(h.hor_id);
+                      setTrainMapMode('ida');
+                    }}
+                    onInspectMap={(h) => {
+                      setSelectedHorarioIdaId(h.hor_id);
+                      setTrainMapMode('ida');
+                    }}
+                    tipo="ida"
+                  />
+                </div>
+
+                <div>
+                  <PeruRailScheduleCard
+                    horarios={horariosRetorno}
+                    origen={estacionDestino}
+                    destino={estacionOrigen}
+                    horarioSeleccionadoId={selectedHorarioRetorno?.hor_id}
+                    onSelectHorario={(h) => {
+                      setSelectedHorarioRetornoId(h.hor_id);
+                      setTrainMapMode('retorno');
+                    }}
+                    onInspectMap={(h) => {
+                      setSelectedHorarioRetornoId(h.hor_id);
+                      setTrainMapMode('retorno');
+                    }}
+                    tipo="retorno"
+                  />
+                </div>
               </div>
             </div>
 
@@ -625,8 +814,8 @@ function PlanificadorContent() {
             {/* Step 3 Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
-                onClick={() => setCurrentStep(2)}
-                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-bold px-5 py-3 rounded-2xl flex items-center gap-2 transition-all"
+                onClick={() => goToStep(2)}
+                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs sm:text-sm font-bold px-5 py-3 rounded-2xl flex items-center gap-2 transition-all cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Volver a Estación & Zona</span>
@@ -634,7 +823,7 @@ function PlanificadorContent() {
 
               <button
                 onClick={handleFinalizeReport}
-                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-xs sm:text-sm font-bold px-7 py-3 rounded-2xl shadow-lg flex items-center gap-2 transition-all"
+                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-xs sm:text-sm font-bold px-7 py-3 rounded-2xl shadow-lg flex items-center gap-2 transition-all cursor-pointer hover:shadow-xl"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Generar Informe Consolidado</span>
@@ -665,9 +854,9 @@ function PlanificadorContent() {
           <div className="flex justify-center pt-4">
             <button
               onClick={() => {
-                setCurrentStep(1);
+                goToStep(1);
               }}
-              className="bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs sm:text-sm font-bold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2 transition-all"
+              className="bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs sm:text-sm font-bold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2 transition-all cursor-pointer"
             >
               <span>Crear Otra Consulta de Ruta</span>
             </button>

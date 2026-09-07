@@ -91,11 +91,11 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <Link
                 href="/planificador"
-                className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold text-xs sm:text-sm px-5 sm:px-6 py-3 rounded-2xl shadow-xl shadow-red-900/30 flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
+                className="bg-gradient-to-r from-red-600 via-red-700 to-rose-600 hover:from-red-500 hover:to-red-600 text-white font-black text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl shadow-xl shadow-red-700/40 border border-red-500/40 flex items-center gap-2.5 transition-all transform hover:-translate-y-1 group ring-2 ring-red-500/30"
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Asesor Inteligente de Rutas</span>
-                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+                <span>Planificar Mi Ruta Turística</span>
+                <ArrowRight className="w-4 h-4 text-red-200 group-hover:text-white group-hover:translate-x-1.5 transition-transform" />
               </Link>
 
               <Link

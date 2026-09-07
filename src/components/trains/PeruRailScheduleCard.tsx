@@ -11,6 +11,7 @@ interface PeruRailScheduleCardProps {
   destino: TblEstacion;
   horarioSeleccionadoId?: string;
   onSelectHorario: (horario: TblHorarioTren) => void;
+  onInspectMap?: (horario: TblHorarioTren) => void;
   tipo: 'ida' | 'retorno';
 }
 
@@ -20,6 +21,7 @@ export default function PeruRailScheduleCard({
   destino,
   horarioSeleccionadoId,
   onSelectHorario,
+  onInspectMap,
   tipo,
 }: PeruRailScheduleCardProps) {
   const getServiceBadgeStyle = (servicio: string) => {
@@ -155,20 +157,36 @@ export default function PeruRailScheduleCard({
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectHorario(hor);
-                    }}
-                    className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm ${
-                      isSelected
-                        ? 'bg-red-700 text-white'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-red-700 hover:text-white'
-                    }`}
-                  >
-                    {isSelected ? '✓ Seleccionado' : 'Seleccionar'}
-                  </button>
+                  <div className="flex flex-col items-end gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectHorario(hor);
+                      }}
+                      className={`text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm ${
+                        isSelected
+                          ? 'bg-red-700 text-white'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-red-700 hover:text-white'
+                      }`}
+                    >
+                      {isSelected ? '✓ Seleccionado' : 'Seleccionar'}
+                    </button>
+
+                    {onInspectMap && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectHorario(hor);
+                          onInspectMap(hor);
+                        }}
+                        className="text-[11px] font-bold text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 transition-colors flex items-center gap-1"
+                      >
+                        🗺️ Ver Mapa & Simulación
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );

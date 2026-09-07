@@ -12,11 +12,20 @@ const ROLES = [
 ] as const;
 
 export default function RoleSwitcher() {
-  const { role, setRole } = useApp();
+  const { role, setRole, loginAsAdmin, logout } = useApp();
   const [isOpen, setIsOpen] = useState(false);
 
   const currentRole = ROLES.find(r => r.id === role) || ROLES[0];
   const Icon = currentRole.icon;
+
+  const handleRoleChange = (newRole: typeof ROLES[number]['id']) => {
+    if (newRole === 'turista') {
+      logout();
+    } else {
+      loginAsAdmin(`admin@${newRole}.pe`, newRole);
+    }
+    setIsOpen(false);
+  };
 
   return (
     <div className="relative">
@@ -43,10 +52,7 @@ export default function RoleSwitcher() {
               return (
                 <button
                   key={r.id}
-                  onClick={() => {
-                    setRole(r.id);
-                    setIsOpen(false);
-                  }}
+                  onClick={() => handleRoleChange(r.id)}
                   className={`w-full text-left p-2 rounded-xl transition-all flex items-start gap-2.5 ${
                     isSelected
                       ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 font-bold'

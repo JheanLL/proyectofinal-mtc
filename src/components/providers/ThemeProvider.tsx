@@ -2,14 +2,27 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
-type UserRole = 'turista' | 'travel_group' | 'perurail' | 'admin';
+export type Theme = 'light' | 'dark';
+export type UserRole = 'turista' | 'travel_group' | 'perurail' | 'admin';
+
+export interface AuthUser {
+  email: string;
+  name: string;
+  role: UserRole;
+  organization: string;
+}
 
 interface AppContextType {
   theme: Theme;
   toggleTheme: () => void;
   role: UserRole;
   setRole: (role: UserRole) => void;
+  authUser: AuthUser | null;
+  isAuthModalOpen: boolean;
+  openAuthModal: () => void;
+  closeAuthModal: () => void;
+  loginAsAdmin: (email: string, role: UserRole, name?: string, org?: string) => void;
+  logout: () => void;
 }
 
 const AppContext = createContext<AppContextType>({
@@ -17,11 +30,19 @@ const AppContext = createContext<AppContextType>({
   toggleTheme: () => {},
   role: 'turista',
   setRole: () => {},
+  authUser: null,
+  isAuthModalOpen: false,
+  openAuthModal: () => {},
+  closeAuthModal: () => {},
+  loginAsAdmin: () => {},
+  logout: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
   const [role, setRoleState] = useState<UserRole>('turista');
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,7 +61,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.add('dark');
     }
 
-    // Read role preference
+    // Read auth session preference
+    const savedAuth = localStorage.getItem('mtc_admin_auth');
+    if (savedAuth) {
+      try {
+        const parsed = JSON.parse(savedAuth) as AuthUser;
+        setAuthUser(parsed);
+        setRoleState(parsed.role);
+        localStorage.setItem('app_role', parsed.role);
+        return;
+      } catch (e) {
+        console.warn('Error reading saved auth:', e);
+      }
+    }
+
+    // Read role preference if no auth
     const savedRole = localStorage.getItem('app_role') as UserRole | null;
     if (savedRole) {
       setRoleState(savedRole);
@@ -63,11 +98,57 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('app_role', newRole);
   };
 
+  const openAuthModal = () => setIsAuthModalOpen(true);
+  const closeAuthModal = () => setIsAuthModalOpen(false);
+
+  const loginAsAdmin = (email: string, newRole: UserRole, name?: string, org?: string) => {
+    const defaultNames: Record<UserRole, { name: string; org: string }> = {
+      turista: { name: 'Visitante Turista', org: 'Público General' },
+      travel_group: { name: 'Gestor de Rutas Peatonales', org: 'Travel Group Perú' },
+      perurail: { name: 'Operador Logístico Ferroviario', org: 'PeruRail S.A.' },
+      admin: { name: 'Administrador General MTC', org: 'Ministerio de Transportes y Comunicaciones' },
+    };
+
+    const userObj: AuthUser = {
+      email,
+      role: newRole,
+      name: name || defaultNames[newRole]?.name || 'Administrador',
+      organization: org || defaultNames[newRole]?.org || 'MTC',
+    };
+
+    setAuthUser(userObj);
+    setRoleState(newRole);
+    localStorage.setItem('mtc_admin_auth', JSON.stringify(userObj));
+    localStorage.setItem('app_role', newRole);
+    setIsAuthModalOpen(false);
+  };
+
+  const logout = () => {
+    setAuthUser(null);
+    setRoleState('turista');
+    localStorage.removeItem('mtc_admin_auth');
+    localStorage.setItem('app_role', 'turista');
+  };
+
   return (
-    <AppContext.Provider value={{ theme, toggleTheme, role, setRole }}>
+    <AppContext.Provider 
+      value={{ 
+        theme, 
+        toggleTheme, 
+        role, 
+        setRole,
+        authUser,
+        isAuthModalOpen,
+        openAuthModal,
+        closeAuthModal,
+        loginAsAdmin,
+        logout
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
 }
 
 export const useApp = () => useContext(AppContext);
+

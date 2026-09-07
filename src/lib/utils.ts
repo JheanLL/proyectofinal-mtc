@@ -33,6 +33,22 @@ export function formatDurationMin(minutes: number): string {
   return `${hours} h ${remainingMinutes} min`;
 }
 
+/**
+ * Formato intuitivo de horas y minutos para progresos y tiempos de viaje:
+ * - Menor a 60 min: "40 min"
+ * - 60 min o más: "1:40 horas", "2:30 horas", "10:30 horas"
+ */
+export function formatHoursColonMin(minutes: number): string {
+  const safeMinutes = Math.max(0, Math.round(minutes));
+  if (safeMinutes < 60) {
+    return `${safeMinutes} min`;
+  }
+  const hours = Math.floor(safeMinutes / 60);
+  const remainingMinutes = safeMinutes % 60;
+  const paddedMinutes = remainingMinutes.toString().padStart(2, '0');
+  return `${hours}:${paddedMinutes} horas`;
+}
+
 export function formatDistance(meters: number): string {
   if (meters < 1000) {
     return `${meters} m`;

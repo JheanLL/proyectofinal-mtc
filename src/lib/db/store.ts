@@ -90,6 +90,15 @@ export const createZonaTuristica = (zona: Omit<TblZonaTuristica, 'zon_id'>): Tbl
   };
   const updatedList = [newZona, ...list];
   saveToStorage(STORAGE_KEYS.ZONAS, updatedList);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/zonas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newZona),
+    }).catch(e => console.warn('[Aiven MySQL CRUD] Fallo al crear zona:', e));
+  }
+
   return newZona;
 };
 
@@ -99,6 +108,15 @@ export const updateZonaTuristica = (id: string, partial: Partial<TblZonaTuristic
   if (index === -1) return false;
   list[index] = { ...list[index], ...partial };
   saveToStorage(STORAGE_KEYS.ZONAS, list);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/zonas', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zon_id: id, ...partial }),
+    }).catch(e => console.warn('[Aiven MySQL CRUD] Fallo al actualizar zona:', e));
+  }
+
   return true;
 };
 
@@ -107,6 +125,13 @@ export const deleteZonaTuristica = (id: string): boolean => {
   const filtered = list.filter(z => z.zon_id !== id);
   if (filtered.length === list.length) return false;
   saveToStorage(STORAGE_KEYS.ZONAS, filtered);
+
+  if (typeof window !== 'undefined') {
+    fetch(`/api/zonas?id=${id}`, {
+      method: 'DELETE',
+    }).catch(e => console.warn('[Aiven MySQL CRUD] Fallo al eliminar zona:', e));
+  }
+
   return true;
 };
 
@@ -128,6 +153,15 @@ export const createHorarioTren = (horario: Omit<TblHorarioTren, 'hor_id'>): TblH
   };
   const updatedList = [newHorario, ...list];
   saveToStorage(STORAGE_KEYS.HORARIOS, updatedList);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/horarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newHorario),
+    }).catch(e => console.warn('[Aiven MySQL CRUD] Fallo al crear horario:', e));
+  }
+
   return newHorario;
 };
 
@@ -137,6 +171,15 @@ export const updateHorarioTren = (id: string, partial: Partial<TblHorarioTren>):
   if (index === -1) return false;
   list[index] = { ...list[index], ...partial };
   saveToStorage(STORAGE_KEYS.HORARIOS, list);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/horarios', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hor_id: id, ...partial }),
+    }).catch(e => console.warn('[Aiven MySQL CRUD] Fallo al actualizar horario:', e));
+  }
+
   return true;
 };
 
@@ -145,6 +188,13 @@ export const deleteHorarioTren = (id: string): boolean => {
   const filtered = list.filter(h => h.hor_id !== id);
   if (filtered.length === list.length) return false;
   saveToStorage(STORAGE_KEYS.HORARIOS, filtered);
+
+  if (typeof window !== 'undefined') {
+    fetch(`/api/horarios?id=${id}`, {
+      method: 'DELETE',
+    }).catch(e => console.warn('[Aiven MySQL CRUD] Fallo al eliminar horario:', e));
+  }
+
   return true;
 };
 
@@ -187,22 +237,57 @@ export const getPreferencias = (): TblPreferenciaTuristica[] => {
   return INITIAL_PREFERENCIAS;
 };
 
-// 6. GESTIÓN DE ITINERARIOS GENERADOS (Informes de Usuario)
+// 6. GESTIÓN DE ITINERARIOS GENERADOS (Informes de Usuario con URLs no adivinables)
+
+/**
+ * Genera un código de itinerario de alta entropía (64 bits), imposible de adivinar o enumerar.
+ * Formato: MTC-[16 caracteres hexadecimales], e.g., MTC-8f3a9e2d1c4b8e3a
+ */
+export const generateSecureItinerarioCodigo = (): string => {
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+    const buffer = new Uint8Array(8);
+    window.crypto.getRandomValues(buffer);
+    const hex = Array.from(buffer, b => b.toString(16).padStart(2, '0')).join('');
+    return `MTC-${hex}`;
+  }
+  // Fallback seguro pseudoaleatorio
+  const r1 = Math.random().toString(36).substring(2, 10);
+  const r2 = Math.random().toString(36).substring(2, 10);
+  return `MTC-${(r1 + r2).substring(0, 16).toLowerCase()}`;
+};
+
 export const getItinerarios = (): TblItinerarioConsulta[] => {
   return getFromStorage<TblItinerarioConsulta[]>(STORAGE_KEYS.ITINERARIOS, []);
 };
 
-export const saveItinerario = (itinerario: Omit<TblItinerarioConsulta, 'iti_id' | 'iti_codigo' | 'iti_fecha_creacion'>): TblItinerarioConsulta => {
+export const cacheItinerarioLocal = (itinerario: TblItinerarioConsulta): void => {
   const list = getItinerarios();
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
+  const exists = list.some(i => i.iti_codigo.toLowerCase() === itinerario.iti_codigo.toLowerCase() || i.iti_id === itinerario.iti_id);
+  if (!exists) {
+    saveToStorage(STORAGE_KEYS.ITINERARIOS, [itinerario, ...list]);
+  }
+};
+
+export const saveItinerario = (itinerario: Omit<TblItinerarioConsulta, 'iti_id' | 'iti_codigo' | 'iti_fecha_creacion'> & { iti_codigo?: string }): TblItinerarioConsulta => {
+  const list = getItinerarios();
+  const secureCode = itinerario.iti_codigo || generateSecureItinerarioCodigo();
   const newItinerario: TblItinerarioConsulta = {
     ...itinerario,
     iti_id: `iti_${Date.now()}`,
-    iti_codigo: `MTC-TRAIN-${randomNum}`,
+    iti_codigo: secureCode,
     iti_fecha_creacion: new Date().toISOString(),
   };
   const updatedList = [newItinerario, ...list];
   saveToStorage(STORAGE_KEYS.ITINERARIOS, updatedList);
+
+  if (typeof window !== 'undefined') {
+    fetch('/api/itinerarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newItinerario),
+    }).catch(e => console.warn('[Aiven MySQL Itinerarios] Fallo al guardar itinerario:', e));
+  }
+
   return newItinerario;
 };
 
