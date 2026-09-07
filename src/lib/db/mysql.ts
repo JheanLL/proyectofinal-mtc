@@ -13,11 +13,25 @@ export let lastInitError: string | null = null;
 
 export function getMySqlPool(): Pool {
   if (!pool) {
-    const host = process.env.host || process.env.AIVEN_MYSQL_HOST || 'api-empleadosgestion.e.aivencloud.com';
-    const port = parseInt(process.env.port || process.env.AIVEN_MYSQL_PORT || '13185', 10);
-    const user = process.env.user || process.env.AIVEN_MYSQL_USER || 'avnadmin';
-    const password = process.env.password || process.env.AIVEN_MYSQL_PASSWORD || '';
-    const database = process.env.dbname || process.env.AIVEN_MYSQL_DATABASE || 'defaultdb';
+    let host = process.env.host || process.env.AIVEN_MYSQL_HOST || 'api-empleadosgestion.e.aivencloud.com';
+    let port = parseInt(process.env.port || process.env.AIVEN_MYSQL_PORT || '13185', 10);
+    let user = process.env.user || process.env.AIVEN_MYSQL_USER || 'avnadmin';
+    let password = process.env.password || process.env.AIVEN_MYSQL_PASSWORD || '';
+    let database = process.env.dbname || process.env.AIVEN_MYSQL_DATABASE || 'defaultdb';
+
+    const connUri = process.env.DATABASE_URL || process.env.serviceuri;
+    if (connUri && connUri.startsWith('mysql://')) {
+      try {
+        const parsed = new URL(connUri);
+        host = parsed.hostname || host;
+        port = parseInt(parsed.port || String(port), 10);
+        user = decodeURIComponent(parsed.username || user);
+        password = decodeURIComponent(parsed.password || password);
+        database = parsed.pathname.replace(/^\//, '') || database;
+      } catch (e) {
+        console.warn('Error parsing DATABASE_URL:', e);
+      }
+    }
 
     pool = mysql.createPool({
       host,
