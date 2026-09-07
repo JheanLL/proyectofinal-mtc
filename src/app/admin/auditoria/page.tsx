@@ -137,7 +137,7 @@ export default function AuditoriaAdminPage() {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-950 border border-purple-700/60 text-purple-300 text-xs font-bold mb-1.5">
             <History className="w-3.5 h-3.5 text-purple-400" />
-            <span>Módulo de Trazabilidad & Auditoría (Aiven Cloud)</span>
+            <span>Módulo de Trazabilidad & Auditoría</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2">
             <span>Bitácora de Auditoría de Cambios</span>
@@ -146,7 +146,7 @@ export default function AuditoriaAdminPage() {
             </span>
           </h1>
           <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-            {permisosTexto || 'Control de cambios e historial de modificaciones en tiempo real sobre la base de datos de Aiven MySQL.'}
+            {permisosTexto || 'Control de cambios e historial de modificaciones del sistema en tiempo real.'}
           </p>
         </div>
 
@@ -261,7 +261,7 @@ export default function AuditoriaAdminPage() {
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-slate-500 dark:text-slate-400">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-slate-400" />
-                    <span>Cargando eventos de auditoría desde Aiven MySQL...</span>
+                    <span>Cargando eventos de auditoría...</span>
                   </td>
                 </tr>
               ) : filteredLogs.length === 0 ? (

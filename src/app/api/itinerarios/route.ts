@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       if (rows && rows.length > 0) {
         return NextResponse.json({ success: true, data: parseItinerarioRow(rows[0]) });
       }
-      return NextResponse.json({ success: false, error: 'Itinerario no encontrado en Aiven MySQL' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Itinerario no encontrado' }, { status: 404 });
     }
 
     const rows = await query<any>('SELECT * FROM tbl_itinerario_consulta ORDER BY iti_fecha_creacion DESC LIMIT 50');
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      mensaje: 'Itinerario consolidado guardado exitosamente en Aiven MySQL.',
+      mensaje: 'Itinerario consolidado guardado exitosamente.',
       data: saved,
     });
   } catch (error: any) {

@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      mensaje: 'Zona turística registrada exitosamente en Aiven MySQL.',
+      mensaje: 'Zona turística registrada exitosamente.',
       data: { ...body, zon_id },
     });
   } catch (error: any) {
@@ -170,7 +170,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      mensaje: 'Zona turística actualizada exitosamente en Aiven MySQL.',
+      mensaje: 'Zona turística actualizada exitosamente.',
       data: body,
     });
   } catch (error: any) {
@@ -178,7 +178,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// 4. DELETE - Eliminar zona en Aiven MySQL
+// 4. DELETE - Eliminar zona
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -201,7 +201,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      mensaje: `Zona turística ${zon_id} eliminada exitosamente en Aiven MySQL.`,
+      mensaje: `Zona turística ${zon_id} eliminada exitosamente.`,
     });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

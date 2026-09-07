@@ -50,7 +50,7 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      mensaje: 'Sincronización periódica ejecutada y registrada en Aiven MySQL (tbl_estado_integracion y tbl_auditoria).',
+      mensaje: 'Sincronización periódica ejecutada exitosamente.',
       data: rows,
     });
   } catch (error: any) {

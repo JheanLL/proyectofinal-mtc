@@ -63,7 +63,7 @@ export default async function Image() {
               color: '#38bdf8',
             }}
           >
-            Aiven MySQL Cloud • Enlace Protegido
+            Itinerario Oficial • Consulta en Línea
           </div>
         </div>
 
@@ -80,10 +80,10 @@ export default async function Image() {
               fontSize: '16px',
               fontWeight: 700,
               color: '#fca5a5',
-              width: 'fit-content',
+              width: 'auto',
             }}
           >
-            DOCUMENTO OFICIAL DE CONSULTA TURÍSTICA
+            DOCUMENTO OFICIAL DE ITINERARIO
           </div>
 
           <h1
@@ -131,7 +131,7 @@ export default async function Image() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '14px', color: '#94a3b8' }}>
-              Ingeniería de Sistemas • Caso MTC
+              Plataforma Turística Oficial • MTC Perú
             </span>
           </div>
         </div>

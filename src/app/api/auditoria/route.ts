@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     return NextResponse.json({
       success: false,
-      error: error.message || 'Error al consultar la bitácora de auditoría en Aiven MySQL.',
+      error: error.message || 'Error al consultar la bitácora de auditoría.',
     }, { status: 500 });
   }
 }
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      mensaje: 'Evento de auditoría registrado exitosamente en Aiven MySQL.'
+      mensaje: 'Evento de auditoría registrado exitosamente.'
     });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

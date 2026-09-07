@@ -27,12 +27,7 @@ import {
   ShieldCheck,
   Copy,
   Check,
-  X,
-  ExternalLink,
-  Database,
-  BookOpen,
-  Lock,
-  Globe
+  X
 } from 'lucide-react';
 import { 
   formatCurrencyPEN, 
@@ -255,13 +250,13 @@ ${shareUrl}`;
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-100 dark:bg-red-950/70 text-red-700 dark:text-red-400 text-[11px] font-bold">
                   <Share2 className="w-3.5 h-3.5" />
-                  <span>Compartir Informe Consolidado</span>
+                  <span>Compartir Itinerario</span>
                 </div>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                  Difunde tu Itinerario Turístico
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Compartir este Itinerario
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Enlace universal seguro sincronizado con Aiven MySQL. Accesible desde cualquier PC o celular sin necesidad de cuenta.
+                  Cualquier persona con este enlace podrá ver el itinerario completo desde su celular o computadora.
                 </p>
               </div>
               <button
@@ -274,11 +269,8 @@ ${shareUrl}`;
 
             {/* Input con enlace directo y botón de copiar */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                <span>Enlace Directo No Adivinable:</span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-bold flex items-center gap-1">
-                  <Lock className="w-3 h-3" /> Token Seguro 64-bit
-                </span>
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                Enlace directo:
               </label>
               <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-1.5 pl-3">
                 <input
@@ -309,7 +301,7 @@ ${shareUrl}`;
             {/* Redes Sociales con Iconos Oficiales */}
             <div className="space-y-2.5">
               <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                Enviar Directamente a Redes Sociales:
+                Compartir en redes sociales:
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
                 {/* WhatsApp */}
@@ -372,7 +364,7 @@ ${shareUrl}`;
                   <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24">
                     <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                   </svg>
-                  <span>Enviar por Correo (Email)</span>
+                  <span>Enviar por correo</span>
                 </a>
               </div>
             </div>
@@ -384,7 +376,7 @@ ${shareUrl}`;
                 className="w-full sm:w-auto flex-1 bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Share2 className="w-4 h-4" />
-                <span>Compartir con el Celular (Android / iOS)</span>
+                <span>Compartir desde el móvil</span>
               </button>
               <button
                 onClick={() => setIsShareModalOpen(false)}
@@ -675,93 +667,14 @@ ${shareUrl}`;
           </div>
         </div>
 
-        {/* 6. Trazabilidad de Requerimientos & Arquitectura Aiven MySQL (HU, RF y DB) */}
-        <div className="border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 rounded-3xl p-5 sm:p-6 mb-8 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-            <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-red-700 dark:text-red-400" />
-              6. Trazabilidad de Requerimientos del Software (HU, RF y Aiven MySQL)
-            </h2>
-            <span className="text-[11px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-800 flex items-center gap-1 self-start sm:self-auto">
-              <Check className="w-3 h-3 stroke-[3]" /> Conforme a Estándares MTC
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            {/* HU-08 */}
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="font-black text-red-700 dark:text-red-400 font-mono">HU-08</span>
-                <span className="text-[10px] font-bold bg-red-50 dark:bg-red-950/80 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-900">
-                  Historia de Usuario
-                </span>
-              </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-xs">
-                Compartir con URL Segura No Adivinable
-              </h3>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                <strong>Como:</strong> Turista sin cuenta o Administrador MTC.<br/>
-                <strong>Quiero:</strong> Compartir mi informe consolidado mediante un enlace protegido no adivinable y accesos a WhatsApp, Telegram, X y Correo.<br/>
-                <strong>Para:</strong> Que cualquier acompañante lo abra en PC o móvil sin registrarse.
-              </p>
-            </div>
-
-            {/* RF-09 */}
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="font-black text-emerald-700 dark:text-emerald-400 font-mono">RF-09</span>
-                <span className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-900">
-                  Requerimiento Funcional
-                </span>
-              </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-xs">
-                Persistencia Cloud en Aiven MySQL
-              </h3>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                El sistema almacena el informe en <code>tbl_itinerario_consulta</code> de Aiven con un identificador de alta entropía (64 bits, <code>MTC-hex</code>) previniendo ataques de enumeración y asegurando disponibilidad en la nube.
-              </p>
-            </div>
-
-            {/* RF-10 */}
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="font-black text-blue-700 dark:text-blue-400 font-mono">RF-10</span>
-                <span className="text-[10px] font-bold bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-900">
-                  Requerimiento Funcional
-                </span>
-              </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-xs">
-                Compartición Multicanal & OpenGraph
-              </h3>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                El sistema provee integración con Web Share API (móviles), Web WhatsApp/Telegram, copiado rápido al portapapeles y metadatos OpenGraph (1200x630) para previsualizaciones vistosas en redes sociales.
-              </p>
-            </div>
-          </div>
-
-          {/* Database Spec Summary */}
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs space-y-2">
-            <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
-              <Database className="w-4 h-4 text-red-600 dark:text-red-400" />
-              <span>Esquema de Base de Datos Cloud: <code className="text-red-700 dark:text-red-400 font-mono">tbl_itinerario_consulta</code> (Aiven MySQL)</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
-              <div><strong>iti_codigo:</strong> Token VARCHAR(64) UNIQUE</div>
-              <div><strong>iti_id:</strong> VARCHAR(50) PRIMARY KEY</div>
-              <div><strong>Almacenamiento:</strong> Aiven MySQL + LocalStorage</div>
-              <div><strong>Seguridad:</strong> Token No Enumerable (64-bit Hex)</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Academic Seal Footer */}
+        {/* Footer Informativo */}
         <div className="border-t border-slate-200 dark:border-slate-800 pt-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600 dark:text-slate-300">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>Prototipo de Software Académico generado para el caso 'Zonas Turísticas MTC' (Ingeniería de Sistemas).</span>
+            <span>Documento oficial emitido por la plataforma de Rutas Turísticas y Red Ferroviaria MTC.</span>
           </div>
           <div className="font-mono text-xs text-slate-500 dark:text-slate-400">
-            PROYECTO: {codigoItinerario}
+            CÓDIGO: {codigoItinerario}
           </div>
         </div>
       </div>

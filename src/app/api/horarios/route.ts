@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      mensaje: 'Horario ferroviario registrado exitosamente en Aiven MySQL.',
+      mensaje: 'Horario ferroviario registrado exitosamente.',
       data: { ...body, hor_id },
     });
   } catch (error: any) {
@@ -158,7 +158,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      mensaje: 'Horario ferroviario actualizado exitosamente en Aiven MySQL.',
+      mensaje: 'Horario ferroviario actualizado exitosamente.',
       data: body,
     });
   } catch (error: any) {
@@ -188,7 +188,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      mensaje: `Horario ${hor_id} eliminado exitosamente en Aiven MySQL.`,
+      mensaje: `Horario ${hor_id} eliminado exitosamente.`,
     });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

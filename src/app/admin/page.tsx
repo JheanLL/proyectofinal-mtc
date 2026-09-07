@@ -241,7 +241,7 @@ export default function AdminDashboardPage() {
               Bitácora de Cambios
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              Historial de creaciones y modificaciones por rol con inspección de payloads JSON en Aiven MySQL.
+              Historial de creaciones, modificaciones y accesos por rol con detalle de eventos.
             </p>
           </div>
           <Link

@@ -124,10 +124,10 @@ function InformeContent() {
         setActiveItinerario(foundAiven);
         setItinerarios(prev => [foundAiven, ...prev.filter(i => i.iti_codigo !== foundAiven.iti_codigo)]);
       } else {
-        alert(`No se encontró un itinerario con el código "${queryTerm}" en la base de datos Aiven.`);
+        alert(`No se encontró ningún itinerario con el código "${queryTerm}".`);
       }
     } catch {
-      alert('Error de conexión al consultar el informe en Aiven.');
+      alert('Error al consultar el itinerario. Por favor intenta de nuevo.');
     } finally {
       setIsLoadingCodigo(false);
     }
@@ -175,7 +175,7 @@ function InformeContent() {
               type="text"
               value={codigoBusqueda}
               onChange={(e) => setCodigoBusqueda(e.target.value)}
-              placeholder="Buscar por código seguro (Ej: MTC-8f3a9e2d1c4b8e3a o TRAIN-8924)..."
+              placeholder="Buscar por código de itinerario (Ej: MTC-8f3a9e2d1c4b8e3a)..."
               className="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-red-600 focus:outline-none"
             />
           </div>
@@ -184,7 +184,7 @@ function InformeContent() {
             disabled={isLoadingCodigo}
             className="bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors shadow-2xs disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
-            {isLoadingCodigo ? 'Consultando Aiven...' : 'Buscar Informe'}
+            {isLoadingCodigo ? 'Buscando...' : 'Buscar Informe'}
           </button>
         </form>
 
