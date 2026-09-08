@@ -44,16 +44,14 @@ export default function Navbar() {
           { href: '/', label: 'Inicio', icon: Compass },
           { href: '/zonas', label: 'Zonas a Pie', icon: MapPin },
           { href: '/estaciones', label: 'Consultar Estaciones', icon: Train },
-          { href: '/admin/zonas', label: 'CRUD Zonas a Pie', icon: MapPin },
-          { href: '/admin', label: 'Matriz Asignación', icon: Settings },
+          { href: '/admin', label: 'Panel de Control', icon: Settings },
         ];
       case 'perurail':
         return [
           { href: '/', label: 'Inicio', icon: Compass },
           { href: '/estaciones', label: 'Red Ferroviaria', icon: Train },
-          { href: '/admin/horarios', label: 'CRUD Horarios & Tarifas', icon: Train },
           { href: '/clima', label: 'Clima en Estaciones', icon: SunMedium },
-          { href: '/admin', label: 'Panel Operativo', icon: Settings },
+          { href: '/admin', label: 'Panel de Control', icon: Settings },
         ];
       case 'admin':
       default:
@@ -64,7 +62,7 @@ export default function Navbar() {
           { href: '/estaciones', label: 'Trenes & Estaciones', icon: Train },
           { href: '/clima', label: 'Clima en Vivo', icon: SunMedium },
           { href: '/informe', label: 'Informes', icon: FileText },
-          { href: '/admin', label: 'Gestión MTC', icon: Settings },
+          { href: '/admin', label: 'Panel de Control', icon: Settings },
         ];
     }
   };
@@ -76,12 +74,10 @@ export default function Navbar() {
       case 'turista':
         return { href: '/planificador', label: 'Planificar Ruta', icon: Sparkles };
       case 'travel_group':
-        return { href: '/admin/zonas', label: '+ Gestionar Zonas', icon: MapPin };
       case 'perurail':
-        return { href: '/admin/horarios', label: '+ Gestionar Horarios', icon: Train };
       case 'admin':
       default:
-        return { href: '/admin', label: 'Panel Gestión', icon: Settings };
+        return { href: '/admin', label: 'Panel de Control', icon: Settings };
     }
   };
 
@@ -89,9 +85,9 @@ export default function Navbar() {
   const CtaIcon = cta.icon;
 
   const isActive = (path: string) => {
-    if (path === '/' && pathname === '/') return true;
-    if (path !== '/' && pathname.startsWith(path)) return true;
-    return false;
+    if (path === '/') return pathname === '/';
+    if (path === '/admin') return pathname === '/admin';
+    return pathname === path || pathname.startsWith(`${path}/`);
   };
 
   const isAdministratorLoggedIn = role !== 'turista';
@@ -142,10 +138,10 @@ export default function Navbar() {
               <button
                 onClick={openAuthModal}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl text-[11px] font-bold bg-red-700 hover:bg-red-800 text-white shadow-xs transition-all cursor-pointer group"
-                title="Acceso para Travel Group Perú, PeruRail y Administradores"
+                title="Acceso institucional para operadores y administradores"
               >
                 <Lock className="w-3.5 h-3.5 text-amber-300 group-hover:scale-110 transition-transform" />
-                <span>Iniciar sesión como administrador</span>
+                <span>Iniciar sesión</span>
               </button>
             ) : (
               <button
@@ -256,7 +252,7 @@ export default function Navbar() {
                   className="w-full bg-red-700 hover:bg-red-800 text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all"
                 >
                   <Lock className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Iniciar sesión como administrador</span>
+                  <span>Iniciar sesión</span>
                 </button>
               ) : (
                 <button

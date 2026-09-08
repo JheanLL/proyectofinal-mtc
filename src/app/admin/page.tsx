@@ -71,20 +71,38 @@ export default function AdminDashboardPage() {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-950 border border-red-700/60 text-red-300 text-xs font-bold mb-1.5">
             <Settings className="w-3.5 h-3.5 text-red-400" />
-            <span>Panel de Configuración y Gestión</span>
+            <span>Panel de Control</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-            Consola de Administración y Gestión
+            Panel de Control y Gestión MTC
           </h1>
           <p className="text-xs text-slate-400 mt-0.5 max-w-2xl">
-            Gestión modular para <strong>Travel Group Perú</strong> (Zonas turísticas a pie), <strong>PeruRail</strong> (Horarios y tarifas) y Monitoreo de <strong>SENAMHI</strong>.
+            Gestión centralizada para <strong>Travel Group Perú</strong> (Zonas turísticas a pie), <strong>PeruRail</strong> (Horarios y tarifas) y Monitoreo de <strong>SENAMHI</strong>.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/zonas"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+            title="Acceso directo a Gestión de Zonas Turísticas"
+          >
+            <MapPin className="w-3.5 h-3.5" />
+            <span>Gestionar Zonas</span>
+          </Link>
+
+          <Link
+            href="/admin/horarios"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+            title="Acceso directo a Gestión de Horarios y Trenes"
+          >
+            <Train className="w-3.5 h-3.5" />
+            <span>Gestionar Trenes</span>
+          </Link>
+
           <button
             onClick={handleResetData}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-700 flex items-center gap-1.5 transition-colors"
+            className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 flex items-center gap-1.5 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Restablecer</span>
@@ -92,10 +110,10 @@ export default function AdminDashboardPage() {
 
           <Link
             href="/admin/integraciones"
-            className="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+            className="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Sincronizar APIs</span>
+            <span>Sincronizar</span>
           </Link>
         </div>
       </div>
@@ -254,15 +272,15 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Matrix Table */}
+      {/* Listado de Estaciones y Zonas Asignadas (Informe para Travel Group Perú) */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full mb-1">
-              <span>Informe para Travel Group Perú</span>
+              <span>Informe para Travel Group Perú (Norma MTC)</span>
             </div>
             <h3 className="text-base font-black text-slate-900 dark:text-white">
-              Matriz de Asignación: Estaciones y Zonas a Pie
+              Listado de Estaciones y Zonas Asignadas
             </h3>
           </div>
 

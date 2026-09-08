@@ -41,8 +41,8 @@ Este proyecto está optimizado para desplegarse en **Vercel** sin costo alguno:
 - **Para Usuarios y Turistas (Con o Sin Cuenta)**: Informe consolidado oficial exportable a **PDF** y formateado para **impresión HTML** con membrete institucional del MTC, SENAMHI, PeruRail y Travel Group Perú, desglose de costos y QR/código de itinerario.
 - **URLs Protegidas No Adivinables**: Generación de tokens de 64 bits de entropía (`MTC-[hex16]`) para consulta segura en **Aiven MySQL** desde PC o móvil sin exponer datos a ataques de enumeración.
 - **Compartición Directa**: Soporte de Web Share API en celulares (Android/iOS) y enlaces directos a WhatsApp Web, Telegram, X (Twitter), Facebook y Correo Electrónico.
-- **OpenGraph Dinámico**: Generación en tiempo real de tarjetas de previsualización (1200x630) para redes sociales vía `next/og`.
-- **Para Travel Group Perú / Admin**: Matriz de asignación de estaciones y zonas con exportación e impresión.
+- **Para Travel Group Perú**: Listado de estaciones y zonas asignadas con filtros por estación y exportación/impresión.
+- **Para Administrador General MTC**: Bitácora de auditoría de seguridad y consola de restauración RBAC.
 
 ---
 
