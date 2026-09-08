@@ -30,23 +30,13 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const getNavLinks = () => {
-    const baseTouristLinks = [
+    return [
       { href: '/', label: 'Inicio', icon: Compass },
       { href: '/planificador', label: 'Asesor Turístico', icon: Sparkles },
       { href: '/zonas', label: 'Zonas a Pie', icon: MapPin },
       { href: '/estaciones', label: 'Trenes & Estaciones', icon: Train },
       { href: '/clima', label: 'Clima en Vivo', icon: SunMedium },
       { href: '/informe', label: 'Informes', icon: FileText },
-    ];
-
-    if (role === 'turista') {
-      return baseTouristLinks;
-    }
-
-    // Administradores y Operadores ven toda la suite de usuario + Panel de Control
-    return [
-      ...baseTouristLinks,
-      { href: '/admin', label: 'Panel de Control', icon: Settings },
     ];
   };
 
@@ -188,7 +178,11 @@ export default function Navbar() {
             <div className="flex items-center gap-2">
               <Link
                 href={cta.href}
-                className="hidden sm:inline-flex items-center gap-2 bg-gradient-to-r from-red-600 via-red-700 to-rose-600 hover:from-red-500 hover:to-red-600 text-white text-xs sm:text-sm font-black px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl shadow-md shadow-red-700/30 hover:shadow-xl hover:shadow-red-600/40 border border-red-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0 group"
+                className={`hidden sm:inline-flex items-center gap-2 text-white text-xs sm:text-sm font-black px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl shadow-md border transition-all transform hover:-translate-y-0.5 active:translate-y-0 group ${
+                  cta.href === '/admin' && pathname.startsWith('/admin')
+                    ? 'bg-slate-900 dark:bg-slate-950 border-red-500 shadow-lg shadow-red-700/20 ring-2 ring-red-500/50'
+                    : 'bg-gradient-to-r from-red-600 via-red-700 to-rose-600 hover:from-red-500 hover:to-red-600 shadow-red-700/30 hover:shadow-xl hover:shadow-red-600/40 border-red-500/40'
+                }`}
               >
                 <CtaIcon className="w-4 h-4 text-amber-300 animate-pulse shrink-0" />
                 <span className="tracking-tight">{cta.label}</span>
