@@ -61,25 +61,54 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.add('dark');
     }
 
-    // Read auth session preference
-    const savedAuth = localStorage.getItem('mtc_admin_auth');
-    if (savedAuth) {
-      try {
-        const parsed = JSON.parse(savedAuth) as AuthUser;
-        setAuthUser(parsed);
-        setRoleState(parsed.role);
-        localStorage.setItem('app_role', parsed.role);
-        return;
-      } catch (e) {
-        console.warn('Error reading saved auth:', e);
-      }
-    }
+    // Read auth session from server /api/auth/me or fallback localStorage
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(json => {
+        if (json.authenticated && json.user) {
+          const u = json.user;
+          const userObj: AuthUser = {
+            email: u.email,
+            role: u.role as UserRole,
+            name: u.name,
+            organization: u.organization,
+          };
+          setAuthUser(userObj);
+          setRoleState(userObj.role);
+          localStorage.setItem('mtc_admin_auth', JSON.stringify(userObj));
+          localStorage.setItem('app_role', userObj.role);
+          return;
+        }
 
-    // Read role preference if no auth
-    const savedRole = localStorage.getItem('app_role') as UserRole | null;
-    if (savedRole) {
-      setRoleState(savedRole);
-    }
+        // Si no hay sesión en cookie, revisar localStorage
+        const savedAuth = localStorage.getItem('mtc_admin_auth');
+        if (savedAuth) {
+          try {
+            const parsed = JSON.parse(savedAuth) as AuthUser;
+            setAuthUser(parsed);
+            setRoleState(parsed.role);
+            localStorage.setItem('app_role', parsed.role);
+            return;
+          } catch (e) {
+            console.warn('Error reading saved auth:', e);
+          }
+        }
+
+        const savedRole = localStorage.getItem('app_role') as UserRole | null;
+        if (savedRole) {
+          setRoleState(savedRole);
+        }
+      })
+      .catch(() => {
+        const savedAuth = localStorage.getItem('mtc_admin_auth');
+        if (savedAuth) {
+          try {
+            const parsed = JSON.parse(savedAuth) as AuthUser;
+            setAuthUser(parsed);
+            setRoleState(parsed.role);
+          } catch {}
+        }
+      });
   }, []);
 
   const toggleTheme = () => {
@@ -124,10 +153,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     setAuthUser(null);
     setRoleState('turista');
     localStorage.removeItem('mtc_admin_auth');
     localStorage.setItem('app_role', 'turista');
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      window.location.href = '/';
+    }
   };
 
   return (

@@ -1,25 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query, logAuditoria } from '@/lib/db/mysql';
+import { getSessionFromRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 // GET /api/auditoria - Consulta de auditoría con segregación estricta de permisos RBAC
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const rol = (searchParams.get('rol') || '').toUpperCase();
-  const usuarioId = searchParams.get('usuarioId');
-  const usuarioEmail = searchParams.get('usuarioEmail') || '';
-  const modulo = searchParams.get('modulo');
-  const accion = searchParams.get('accion');
-  const limite = parseInt(searchParams.get('limite') || '50', 10);
-
-  // Validación de Seguridad RBAC: Solo operadores administrativos autorizados
-  if (!rol || !['ADMIN', 'TRAVEL_GROUP', 'PERURAIL'].includes(rol)) {
+  const session = await getSessionFromRequest(request);
+  if (!session) {
     return NextResponse.json({
       success: false,
-      error: 'Acceso Denegado. La auditoría exige autenticación con una de las 3 cuentas administrativas (ADMIN, TRAVEL_GROUP, PERURAIL). Los usuarios/turistas no tienen acceso a auditoría.',
-    }, { status: 403 });
+      error: 'Autenticación requerida. La bitácora de auditoría exige una sesión activa con una de las cuentas autorizadas (ADMIN, TRAVEL_GROUP, PERURAIL).',
+    }, { status: 401 });
   }
+
+  const rol = session.role;
+  const usuarioId = session.userId;
+  const usuarioEmail = session.email;
+  const { searchParams } = new URL(request.url);
+  const modulo = searchParams.get('modulo');
+  const accion = searchParams.get('accion');
+  const limite = parseInt(searchParams.get('limite') || '100', 10);
 
   try {
     let sql = `
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
     `;
     const params: any[] = [];
 
-    // --- REGLAS DE ACCESO SEGÚN EL ROL ---
+    // --- REGLAS DE SEGREGACIÓN SEGÚN EL ROL ---
     if (rol === 'ADMIN') {
       // Superadministrador MTC: Visibilidad 100% global
       if (modulo && modulo !== 'TODOS') {
@@ -43,45 +44,27 @@ export async function GET(request: NextRequest) {
         sql += ' AND aud_accion = ?';
         params.push(accion);
       }
-      if (usuarioId) {
+      if (usuarioId && searchParams.has('usuarioId')) {
         sql += ' AND aud_usuario_id = ?';
         params.push(usuarioId);
       }
     } else if (rol === 'TRAVEL_GROUP') {
-      // Operador Travel Group Perú: Únicamente sus propios cambios en ZONAS
+      // Operador Travel Group Perú: Exclusivo sobre ZONAS turísticas peatonales
       sql += " AND aud_modulo = 'ZONAS'";
-      if (usuarioId) {
-        sql += ' AND aud_usuario_id = ?';
-        params.push(usuarioId);
-      } else if (usuarioEmail) {
-        sql += ' AND aud_usuario_email = ?';
-        params.push(usuarioEmail);
-      } else {
-        sql += " AND (aud_usuario_email LIKE '%travelgroup%' OR aud_usuario_id = 2)";
-      }
       if (accion && accion !== 'TODAS') {
         sql += ' AND aud_accion = ?';
         params.push(accion);
       }
     } else if (rol === 'PERURAIL') {
-      // Operador PeruRail: Únicamente sus propios cambios en HORARIOS
+      // Operador PeruRail: Exclusivo sobre HORARIOS ferroviarios y tarifas
       sql += " AND aud_modulo = 'HORARIOS'";
-      if (usuarioId) {
-        sql += ' AND aud_usuario_id = ?';
-        params.push(usuarioId);
-      } else if (usuarioEmail) {
-        sql += ' AND aud_usuario_email = ?';
-        params.push(usuarioEmail);
-      } else {
-        sql += " AND (aud_usuario_email LIKE '%perurail%' OR aud_usuario_id = 3)";
-      }
       if (accion && accion !== 'TODAS') {
         sql += ' AND aud_accion = ?';
         params.push(accion);
       }
     }
 
-    sql += ' ORDER BY aud_fecha_hora DESC LIMIT ?';
+    sql += ' ORDER BY aud_fecha_hora DESC, aud_id DESC LIMIT ?';
     params.push(limite);
 
     const rows = await query<any>(sql, params);
@@ -91,7 +74,7 @@ export async function GET(request: NextRequest) {
       rol_solicitante: rol,
       permisos_aplicados: rol === 'ADMIN' 
         ? 'Visibilidad Global Total (Superadmin MTC)' 
-        : `Historial Restringido a ${rol === 'TRAVEL_GROUP' ? 'Zonas Turísticas Propias' : 'Horarios Ferroviarios Propios'}`,
+        : `Historial Restringido a ${rol === 'TRAVEL_GROUP' ? 'Zonas Turísticas Peatonales' : 'Horarios Ferroviarios y Tarifas'}`,
       data: rows || [],
       total: rows ? rows.length : 0,
       timestamp: new Date().toISOString()
@@ -104,9 +87,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/auditoria - Registro manual de eventos de auditoría
+// POST /api/auditoria - Registro manual o programático de eventos de auditoría
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSessionFromRequest(request);
     const body = await request.json();
     const { usuarioId, usuarioEmail, accion, modulo, registroId, detalles, ip } = body;
 
@@ -114,14 +98,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Faltan campos obligatorios: accion y modulo' }, { status: 400 });
     }
 
+    const finalUserId = usuarioId || session?.userId || null;
+    const finalEmail = usuarioEmail || session?.email || 'sistema@mtc.gob.pe';
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const finalIp = ip || (forwardedFor ? forwardedFor.split(',')[0].trim() : '127.0.0.1');
+
     await logAuditoria(
-      usuarioId || null,
-      usuarioEmail || 'sistema@mtc.gob.pe',
+      finalUserId,
+      finalEmail,
       accion,
       modulo,
       registroId || null,
       detalles || null,
-      ip || '127.0.0.1'
+      finalIp
     );
 
     return NextResponse.json({

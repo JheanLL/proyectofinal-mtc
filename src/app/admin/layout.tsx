@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApp } from '@/components/providers/ThemeProvider';
-import { ShieldAlert, ArrowRight, Train, MapPin, ShieldCheck, Lock, RefreshCw } from 'lucide-react';
+import { ArrowRight, Train, MapPin, Lock, RefreshCw } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -17,83 +17,38 @@ export default function AdminLayout({
   // 1. Si el usuario no ha iniciado sesión administrativa (rol turista)
   if (role === 'turista') {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12 sm:py-16">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-xl text-center space-y-6">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
-            <Lock className="w-8 h-8" />
+      <div className="max-w-2xl mx-auto px-4 py-12 sm:py-16">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-xl text-center space-y-5">
+          <div className="w-14 h-14 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+            <Lock className="w-7 h-7" />
           </div>
 
-          <div className="max-w-xl mx-auto space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 px-3 py-1 rounded-full border border-red-200 dark:border-red-900">
-              Acceso Restringido • Requiere Autenticación
+          <div className="space-y-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 px-3 py-1 rounded-full border border-red-200 dark:border-red-900">
+              Acceso Restringido
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Consola de Administración y Gestión MTC
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Panel de Administración
             </h1>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Esta sección está reservada exclusivamente para gestores autorizados: <strong>Travel Group Perú</strong> (Catálogo turístico a pie), <strong>PeruRail</strong> (Horarios y tarifas de tren) y <strong>Admin General MTC</strong> (Gestores del sistema).
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-md mx-auto">
+              Esta sección requiere inicio de sesión con credenciales autorizadas del Ministerio de Transportes y Comunicaciones o de las entidades operadoras.
             </p>
           </div>
 
-          {/* Primary Action: Open Login Modal */}
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={openAuthModal}
-              className="inline-flex items-center gap-2 bg-red-700 hover:bg-red-800 text-white text-sm font-black px-6 py-3 rounded-2xl shadow-lg shadow-red-700/30 hover:shadow-xl transition-all cursor-pointer transform hover:-translate-y-0.5"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
             >
-              <Lock className="w-4 h-4 text-amber-300" />
-              <span>Iniciar Sesión como Administrador</span>
-              <ArrowRight className="w-4 h-4" />
+              <Lock className="w-4 h-4" />
+              <span>Iniciar Sesión</span>
             </button>
-          </div>
 
-          {/* Info on Available Accounts according to syllabus */}
-          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 text-left max-w-2xl mx-auto">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 text-center">
-              Cuentas habilitadas según la Hoja de Práctica (Unidad IV)
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div 
-                onClick={openAuthModal}
-                className="p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20 cursor-pointer hover:border-emerald-500 transition-all"
-              >
-                <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 mb-1">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-xs font-bold">Travel Group</span>
-                </div>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400">CRUD Zonas a pie y estaciones solo lectura.</p>
-              </div>
-
-              <div 
-                onClick={openAuthModal}
-                className="p-3.5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/20 cursor-pointer hover:border-blue-500 transition-all"
-              >
-                <div className="flex items-center gap-1.5 text-blue-700 dark:text-blue-400 mb-1">
-                  <Train className="w-4 h-4" />
-                  <span className="text-xs font-bold">PeruRail</span>
-                </div>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400">CRUD Horarios, trenes, precios y red ferroviaria.</p>
-              </div>
-
-              <div 
-                onClick={openAuthModal}
-                className="p-3.5 rounded-2xl border border-red-200 dark:border-red-900/60 bg-red-50/40 dark:bg-red-950/20 cursor-pointer hover:border-red-500 transition-all"
-              >
-                <div className="flex items-center gap-1.5 text-red-700 dark:text-red-400 mb-1">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span className="text-xs font-bold">Admin General</span>
-                </div>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400">Panel de gestores MTC, APIs y control total.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-2">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <span>Regresar al portal público para turistas</span>
+              <span>Volver al portal</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -111,15 +66,15 @@ export default function AdminLayout({
             <Train className="w-6 h-6" />
           </div>
           <span className="text-[11px] font-bold uppercase tracking-wider bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full">
-            Restricción por Separación de Funciones
+            Sección Restringida
           </span>
-          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Sección Exclusiva de PeruRail</h2>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
-            Como representante de <strong>Travel Group Perú</strong>, tu ámbito de gestión según los requerimientos corresponde a las <strong>zonas turísticas a pie</strong> y a consultar las <strong>estaciones en modo solo lectura</strong>. La gestión de horarios, trenes y tarifas es potestad de <strong>PeruRail</strong>.
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Gestión de Horarios y Tarifas</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+            Esta sección está reservada para el operador ferroviario PeruRail. Su cuenta tiene asignada la administración del catálogo de zonas turísticas.
           </p>
           <div className="pt-2 flex justify-center gap-2">
             <Link href="/admin/zonas" className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2 rounded-xl">
-              Ir a Mis Zonas Turísticas
+              Ir a Zonas Turísticas
             </Link>
             <Link href="/admin" className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold px-4 py-2 rounded-xl">
               Volver al Panel
@@ -139,15 +94,15 @@ export default function AdminLayout({
             <MapPin className="w-6 h-6" />
           </div>
           <span className="text-[11px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-3 py-1 rounded-full">
-            Restricción por Separación de Funciones
+            Sección Restringida
           </span>
-          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Sección Exclusiva de Travel Group Perú</h2>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
-            Como operador logístico <strong>PeruRail</strong>, tu ámbito de gestión según los requerimientos corresponde a los <strong>horarios, frecuencias, trenes y tarifas</strong>. El levantamiento y catalogación de atractivos peatonales es responsabilidad de <strong>Travel Group Perú</strong>.
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Gestión de Zonas Turísticas</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+            Esta sección está reservada para la entidad gestora de turismo Travel Group Perú. Su cuenta tiene asignada la administración de horarios y tarifas ferroviarias.
           </p>
           <div className="pt-2 flex justify-center gap-2">
             <Link href="/admin/horarios" className="bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold px-4 py-2 rounded-xl">
-              Ir a Mis Horarios de Tren
+              Ir a Horarios de Tren
             </Link>
             <Link href="/admin" className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold px-4 py-2 rounded-xl">
               Volver al Panel
@@ -167,15 +122,15 @@ export default function AdminLayout({
             <RefreshCw className="w-6 h-6" />
           </div>
           <span className="text-[11px] font-bold uppercase tracking-wider bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full">
-            Panel Exclusivo de Gestores MTC
+            Supervisión del Sistema
           </span>
-          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Monitor de Sincronización de APIs</h2>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
-            El monitoreo y la sincronización periódica de APIs externas (SENAMHI, conectores externos) está reservado exclusivamente para los <strong>Gestores del MTC (Admin General)</strong> en cumplimiento del Módulo 2 de la práctica.
+          <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Sincronización de Servicios</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+            La supervisión y sincronización de servicios e integraciones externas está reservada para los administradores del Ministerio de Transportes y Comunicaciones.
           </p>
           <div className="pt-2 flex justify-center gap-2">
             <Link href="/admin" className="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl">
-              Volver al Panel Principal
+              Volver al Panel
             </Link>
           </div>
         </div>

@@ -53,9 +53,33 @@ export default function AdminHorariosCrudPage() {
 
   const [formData, setFormData] = useState<Omit<TblHorarioTren, 'hor_id'>>(initialFormState);
 
-  const reloadData = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const reloadData = async () => {
+    setIsLoading(true);
     setHorarios(getHorariosTren());
     setEstaciones(getEstaciones());
+
+    try {
+      const [resHor, resEst] = await Promise.all([
+        fetch('/api/horarios'),
+        fetch('/api/estaciones'),
+      ]);
+      const dataH = await resHor.json();
+      const dataE = await resEst.json();
+      if (dataH.success && Array.isArray(dataH.data)) {
+        setHorarios(dataH.data);
+      }
+      if (dataE.success && Array.isArray(dataE.data)) {
+        setEstaciones(dataE.data);
+      }
+    } catch (err) {
+      console.warn('[Admin Horarios] Usando datos locales:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -75,18 +99,36 @@ export default function AdminHorariosCrudPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string, codigo: string) => {
-    if (confirm(`¿Eliminar la frecuencia de tren "${codigo}"?`)) {
+  const handleDelete = async (id: string, codigo: string) => {
+    if (!confirm(`¿Está seguro de eliminar permanentemente la frecuencia de tren "${codigo}" de Aiven MySQL?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/horarios?id=${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Acceso denegado o error al eliminar horario.');
+        return;
+      }
+      deleteHorarioTren(id);
+      setStatusMessage({ type: 'success', text: `Frecuencia "${codigo}" eliminada exitosamente.` });
+      setTimeout(() => setStatusMessage(null), 4000);
+      await reloadData();
+    } catch (err: any) {
+      console.error(err);
       deleteHorarioTren(id);
       reloadData();
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.hor_codigo_tren.trim()) {
-      alert('Por favor ingresa el código del tren.');
+      alert('Por favor ingrese el código del tren.');
       return;
     }
 
@@ -95,14 +137,46 @@ export default function AdminHorariosCrudPage() {
       return;
     }
 
-    if (editingId) {
-      updateHorarioTren(editingId, formData);
-    } else {
-      createHorarioTren(formData);
-    }
+    setIsSubmitting(true);
+    try {
+      if (editingId) {
+        const res = await fetch('/api/horarios', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...formData, hor_id: editingId }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(data.error || 'Error al actualizar horario.');
+          setIsSubmitting(false);
+          return;
+        }
+        updateHorarioTren(editingId, formData);
+        setStatusMessage({ type: 'success', text: 'Frecuencia ferroviaria actualizada exitosamente.' });
+      } else {
+        const res = await fetch('/api/horarios', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(data.error || 'Error al crear horario.');
+          setIsSubmitting(false);
+          return;
+        }
+        createHorarioTren(formData);
+        setStatusMessage({ type: 'success', text: 'Nueva frecuencia ferroviaria registrada exitosamente.' });
+      }
 
-    setIsModalOpen(false);
-    reloadData();
+      setIsModalOpen(false);
+      setTimeout(() => setStatusMessage(null), 4000);
+      await reloadData();
+    } catch (err: any) {
+      alert(`Error al procesar: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filteredHorarios = horarios.filter(h => 

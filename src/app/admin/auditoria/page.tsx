@@ -18,14 +18,15 @@ import {
   AlertTriangle,
   FileCode,
   Lock,
-  Sparkles
+  Sparkles,
+  RotateCcw
 } from 'lucide-react';
 
 interface AuditItem {
   aud_id: number;
   aud_usuario_id: number | null;
   aud_usuario_email: string | null;
-  aud_accion: 'LOGIN' | 'CREATE' | 'UPDATE' | 'DELETE' | 'SYNC';
+  aud_accion: 'LOGIN' | 'CREATE' | 'UPDATE' | 'DELETE' | 'SYNC' | 'RESTORE';
   aud_modulo: 'ZONAS' | 'HORARIOS' | 'INTEGRACIONES' | 'AUTH';
   aud_registro_id: string | null;
   aud_detalles_json: any;
@@ -42,6 +43,8 @@ export default function AuditoriaAdminPage() {
   const [selectedAccion, setSelectedAccion] = useState<string>('TODAS');
   const [searchFilter, setSearchFilter] = useState('');
   const [activeDiffModal, setActiveDiffModal] = useState<AuditItem | null>(null);
+  const [restoringId, setRestoringId] = useState<number | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchAuditoria = async () => {
     setIsLoading(true);
@@ -92,9 +95,38 @@ export default function AuditoriaAdminPage() {
     );
   });
 
+  const handleRestaurar = async (item: AuditItem) => {
+    if (!confirm(`¿Está seguro de restaurar el registro "${item.aud_registro_id}"? Se reincorporará con todos sus datos, imágenes y coordenadas originales a la base de datos oficial.`)) {
+      return;
+    }
+
+    setRestoringId(item.aud_id);
+    try {
+      const res = await fetch('/api/auditoria/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aud_id: item.aud_id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Error al restaurar el registro.');
+        return;
+      }
+      setToastMessage({ type: 'success', text: data.mensaje || `Registro ${item.aud_registro_id} restaurado exitosamente.` });
+      setTimeout(() => setToastMessage(null), 5000);
+      await fetchAuditoria();
+    } catch (err: any) {
+      alert(`Error de conexión: ${err.message}`);
+    } finally {
+      setRestoringId(null);
+    }
+  };
+
   const getActionBadge = (accion: string) => {
     switch (accion) {
       case 'CREATE':
+        return 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800';
+      case 'RESTORE':
         return 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800';
       case 'UPDATE':
         return 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800';
@@ -181,14 +213,14 @@ export default function AuditoriaAdminPage() {
           <ShieldCheck className="w-5 h-5 shrink-0" />
           <div>
             <span className="font-extrabold uppercase tracking-wide">
-              {role === 'admin' ? '🛡️ Perfil Superadministrador MTC' : role === 'travel_group' ? '🌿 Perfil Travel Group Perú' : '🚂 Perfil PeruRail'}
+              {role === 'admin' ? 'Administración General MTC' : role === 'travel_group' ? 'Travel Group Perú' : 'PeruRail S.A.'}
             </span>
             <p className="opacity-90 mt-0.5">
               {role === 'admin' 
-                ? 'Permisos Totales: Tienes visibilidad completa de todas las modificaciones y creaciones de todos los operadores y módulos.' 
+                ? 'Supervisión integral de todas las operaciones registradas en el sistema.' 
                 : role === 'travel_group'
-                ? 'Permisos Segmentados: Solo puedes auditar y visualizar las modificaciones y creaciones realizadas sobre el catálogo de Zonas Turísticas.'
-                : 'Permisos Segmentados: Solo puedes auditar y visualizar las modificaciones y creaciones realizadas sobre el catálogo de Horarios y Tarifas.'}
+                ? 'Registro de operaciones efectuadas sobre el catálogo de zonas turísticas.'
+                : 'Registro de operaciones efectuadas sobre horarios y tarifas ferroviarias.'}
             </p>
           </div>
         </div>
@@ -236,10 +268,23 @@ export default function AuditoriaAdminPage() {
           <option value="CREATE">CREATE (Altas)</option>
           <option value="UPDATE">UPDATE (Ediciones)</option>
           <option value="DELETE">DELETE (Bajas)</option>
+          <option value="RESTORE">RESTORE (Restauraciones)</option>
           <option value="SYNC">SYNC (Sincronizaciones)</option>
           <option value="LOGIN">LOGIN (Inicios de Sesión)</option>
         </select>
       </div>
+
+      {/* Notificación Toast de Restauración */}
+      {toastMessage && (
+        <div className={`p-4 rounded-2xl border flex items-center gap-3 animate-fade-in ${
+          toastMessage.type === 'success'
+            ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+            : 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
+        }`}>
+          <CheckCircle2 className="w-5 h-5 shrink-0" />
+          <p className="text-xs font-bold">{toastMessage.text}</p>
+        </div>
+      )}
 
       {/* Main Table */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -253,7 +298,7 @@ export default function AuditoriaAdminPage() {
                 <th className="p-3">Módulo</th>
                 <th className="p-3">Registro Afectado</th>
                 <th className="p-3">IP Origen</th>
-                <th className="p-3 text-right">Detalle de Cambios</th>
+                <th className="p-3 text-right">Detalle / Restauración</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -300,17 +345,29 @@ export default function AuditoriaAdminPage() {
                       {l.aud_ip_origen || '127.0.0.1'}
                     </td>
                     <td className="p-3 text-right">
-                      {l.aud_detalles_json ? (
-                        <button
-                          onClick={() => setActiveDiffModal(l)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-semibold transition-colors"
-                        >
-                          <Eye className="w-3 h-3 text-blue-500" />
-                          <span>Ver Diff JSON</span>
-                        </button>
-                      ) : (
-                        <span className="text-slate-400 text-[11px]">Sin payload</span>
-                      )}
+                      <div className="flex items-center justify-end gap-1.5">
+                        {l.aud_detalles_json && (
+                          <button
+                            onClick={() => setActiveDiffModal(l)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-semibold transition-colors"
+                          >
+                            <Eye className="w-3 h-3 text-blue-500" />
+                            <span>Ver Diff</span>
+                          </button>
+                        )}
+
+                        {l.aud_accion === 'DELETE' && (l.aud_modulo === 'ZONAS' || l.aud_modulo === 'HORARIOS') && (
+                          <button
+                            onClick={() => handleRestaurar(l)}
+                            disabled={restoringId === l.aud_id}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm transition-all disabled:opacity-50"
+                            title="Restaurar elemento eliminado con todos sus datos e imágenes"
+                          >
+                            <RotateCcw className={`w-3 h-3 ${restoringId === l.aud_id ? 'animate-spin' : ''}`} />
+                            <span>{restoringId === l.aud_id ? 'Restaurando...' : 'Restaurar'}</span>
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

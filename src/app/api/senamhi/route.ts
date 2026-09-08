@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   const headers = {
     'Cache-Control': isRefresh 
       ? 'no-store, no-cache, must-revalidate' 
-      : 'public, s-maxage=600, stale-while-revalidate=1200',
+      : 'public, s-maxage=300, stale-while-revalidate=60',
   };
 
   if (estacionId) {

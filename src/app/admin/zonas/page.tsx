@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   getZonasTuristicas, 
@@ -25,6 +25,12 @@ import {
   Save, 
   X, 
   Search,
+  Upload,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Loader2,
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
 import { formatDistance, formatDurationMin, formatCurrencyPEN } from '@/lib/utils';
 
@@ -33,10 +39,19 @@ export default function AdminZonasCrudPage() {
   const [estaciones, setEstaciones] = useState<TblEstacion[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStationFilter, setSelectedStationFilter] = useState('todos');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Modal / Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Image Upload State
+  const [imageUploadMode, setImageUploadMode] = useState<'upload' | 'url'>('upload');
+  const [isOptimizingImage, setIsOptimizingImage] = useState(false);
+  const [imageSizeKb, setImageSizeKb] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const initialFormState: Omit<TblZonaTuristica, 'zon_id'> = {
     zon_estacion_id: 'est_04',
@@ -63,9 +78,31 @@ export default function AdminZonasCrudPage() {
   const [puntosInteresText, setPuntosInteresText] = useState('');
   const [recomendacionesText, setRecomendacionesText] = useState('');
 
-  const reloadData = () => {
+  const reloadData = async () => {
+    setIsLoading(true);
+    // Carga inicial reactiva desde store local
     setZonas(getZonasTuristicas());
     setEstaciones(getEstaciones());
+
+    // Sincronización en vivo con Aiven MySQL
+    try {
+      const [resZonas, resEst] = await Promise.all([
+        fetch('/api/zonas'),
+        fetch('/api/estaciones'),
+      ]);
+      const dataZ = await resZonas.json();
+      const dataE = await resEst.json();
+      if (dataZ.success && Array.isArray(dataZ.data)) {
+        setZonas(dataZ.data);
+      }
+      if (dataE.success && Array.isArray(dataE.data)) {
+        setEstaciones(dataE.data);
+      }
+    } catch (err) {
+      console.warn('[Admin Zonas] Usando datos locales:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -77,6 +114,8 @@ export default function AdminZonasCrudPage() {
     setFormData(initialFormState);
     setPuntosInteresText(initialFormState.zon_puntos_interes.join('\n'));
     setRecomendacionesText(initialFormState.zon_recomendaciones.join('\n'));
+    setImageSizeKb(null);
+    setImageUploadMode('upload');
     setIsModalOpen(true);
   };
 
@@ -86,21 +125,106 @@ export default function AdminZonasCrudPage() {
     setFormData(rest);
     setPuntosInteresText(zona.zon_puntos_interes.join('\n'));
     setRecomendacionesText(zona.zon_recomendaciones.join('\n'));
+    if (zona.zon_imagen_url.startsWith('data:image/')) {
+      const approxBytes = Math.round((zona.zon_imagen_url.length * 3) / 4);
+      setImageSizeKb(Math.round(approxBytes / 1024));
+      setImageUploadMode('upload');
+    } else {
+      setImageSizeKb(null);
+      setImageUploadMode('url');
+    }
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string, nombre: string) => {
-    if (confirm(`¿Estás seguro de eliminar la zona turística "${nombre}"?`)) {
+  // Algoritmo de Compresión de Imágenes en Cliente a WebP (100% Gratis - Cero Costo de Cloud)
+  const handleImageFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor seleccione un archivo de imagen válido (JPEG, PNG, WEBP).');
+      return;
+    }
+
+    setIsOptimizingImage(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Escala proporcional a máx 1000px para conservar nitidez y peso pluma (< 80 KB)
+          const maxDim = 1000;
+          let w = img.width;
+          let h = img.height;
+
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            // Conversión a WebP optimizado con calidad 0.82
+            const webpDataUrl = canvas.toDataURL('image/webp', 0.82);
+            const approxBytes = Math.round((webpDataUrl.length * 3) / 4);
+            const sizeKb = Math.round(approxBytes / 1024);
+            setImageSizeKb(sizeKb);
+            setFormData(prev => ({ ...prev, zon_imagen_url: webpDataUrl }));
+          }
+          setIsOptimizingImage(false);
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Error optimizando imagen:', err);
+      setIsOptimizingImage(false);
+      alert('Error al procesar la imagen.');
+    }
+  };
+
+  const handleDelete = async (id: string, nombre: string) => {
+    if (!confirm(`¿Está seguro de eliminar permanentemente el atractivo turístico "${nombre}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/zonas?id=${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Acceso denegado o error al eliminar la zona.');
+        return;
+      }
+
+      deleteZonaTuristica(id);
+      setStatusMessage({ type: 'success', text: `Zona "${nombre}" eliminada exitosamente.` });
+      setTimeout(() => setStatusMessage(null), 4000);
+      await reloadData();
+    } catch (err: any) {
+      console.error(err);
       deleteZonaTuristica(id);
       reloadData();
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.zon_nombre.trim()) {
-      alert('Por favor ingresa el nombre de la zona turística.');
+      alert('Por favor ingrese el nombre de la zona turística.');
       return;
     }
 
@@ -110,14 +234,47 @@ export default function AdminZonasCrudPage() {
       zon_recomendaciones: recomendacionesText.split('\n').map(s => s.trim()).filter(Boolean),
     };
 
-    if (editingId) {
-      updateZonaTuristica(editingId, payload);
-    } else {
-      createZonaTuristica(payload);
-    }
+    setIsSubmitting(true);
 
-    setIsModalOpen(false);
-    reloadData();
+    try {
+      if (editingId) {
+        const res = await fetch('/api/zonas', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, zon_id: editingId }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(data.error || 'No fue posible actualizar la zona.');
+          setIsSubmitting(false);
+          return;
+        }
+        updateZonaTuristica(editingId, payload);
+        setStatusMessage({ type: 'success', text: 'Zona turística actualizada en Aiven MySQL exitosamente.' });
+      } else {
+        const res = await fetch('/api/zonas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(data.error || 'No fue posible registrar la nueva zona.');
+          setIsSubmitting(false);
+          return;
+        }
+        createZonaTuristica(payload);
+        setStatusMessage({ type: 'success', text: 'Nueva zona turística registrada en Aiven MySQL exitosamente.' });
+      }
+
+      setIsModalOpen(false);
+      setTimeout(() => setStatusMessage(null), 4000);
+      await reloadData();
+    } catch (err: any) {
+      alert(`Error al procesar la solicitud: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filteredZonas = zonas.filter(z => {
@@ -128,6 +285,18 @@ export default function AdminZonasCrudPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 transition-colors duration-200">
+      {/* Notificación de Estado */}
+      {statusMessage && (
+        <div className={`p-4 rounded-2xl border flex items-center gap-3 animate-fade-in ${
+          statusMessage.type === 'success'
+            ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+            : 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
+        }`}>
+          <CheckCircle2 className="w-5 h-5 shrink-0" />
+          <p className="text-xs font-bold">{statusMessage.text}</p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -139,7 +308,7 @@ export default function AdminZonasCrudPage() {
             CRUD de Zonas Turísticas a Pie
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-2xl">
-            Levantamiento, registro y actualización de atractivos turísticos diseñados a pie desde las estaciones ferroviarias (solo lectura de estaciones).
+            Levantamiento, registro, optimización de imágenes WebP y actualización de atractivos turísticos diseñados a pie desde las estaciones ferroviarias (Aiven MySQL SSOT).
           </p>
         </div>
 
@@ -217,7 +386,7 @@ export default function AdminZonasCrudPage() {
                         <img
                           src={z.zon_imagen_url}
                           alt={z.zon_nombre}
-                          className="w-10 h-10 rounded-xl object-cover shrink-0"
+                          className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
                         />
                         <div>
                           <h4 className="font-bold text-slate-900 dark:text-white text-xs">{z.zon_nombre}</h4>
@@ -232,7 +401,7 @@ export default function AdminZonasCrudPage() {
                       </div>
                     </td>
                     <td className="p-3">
-                      <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold px-1.5 py-0.2 rounded uppercase">
+                      <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">
                         {z.zon_categoria}
                       </span>
                     </td>
@@ -243,7 +412,7 @@ export default function AdminZonasCrudPage() {
                       {formatDistance(z.zon_distancia_metros * 2)} (~{formatDurationMin(z.zon_tiempo_caminata_min * 2)})
                     </td>
                     <td className="p-3">
-                      <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                         z.zon_dificultad === 'Fácil'
                           ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
                           : z.zon_dificultad === 'Moderado'
@@ -290,7 +459,7 @@ export default function AdminZonasCrudPage() {
             <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-10">
               <div>
                 <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 tracking-wider">
-                  Travel Group Perú • Formulario
+                  Travel Group Perú • Formulario Institucional
                 </span>
                 <h3 className="text-base font-black text-slate-900 dark:text-white">
                   {editingId ? 'Editar Zona Turística' : 'Registrar Nueva Zona'}
@@ -320,7 +489,7 @@ export default function AdminZonasCrudPage() {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Estación de Partida: *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Estación de Partida (Solo Lectura): *</label>
                   <select
                     value={formData.zon_estacion_id}
                     onChange={(e) => setFormData({ ...formData, zon_estacion_id: e.target.value })}
@@ -359,11 +528,12 @@ export default function AdminZonasCrudPage() {
                     value={formData.zon_resumen_corto}
                     onChange={(e) => setFormData({ ...formData, zon_resumen_corto: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                    placeholder="Descripción resumida en 1 línea para tarjetas del catálogo..."
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Descripción: *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Descripción Detallada: *</label>
                   <textarea
                     rows={2}
                     required
@@ -371,6 +541,115 @@ export default function AdminZonasCrudPage() {
                     onChange={(e) => setFormData({ ...formData, zon_descripcion: e.target.value })}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                   />
+                </div>
+
+                {/* SECCIÓN DE CARGA DE IMAGEN (100% GRATIS CON COMPRESIÓN WEBP) */}
+                <div className="sm:col-span-2 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <ImageIcon className="w-4 h-4 text-emerald-600" />
+                        <span>Fotografía del Atractivo Turístico</span>
+                      </label>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                        Compresión automática a WebP en el navegador (Cero costo de servidor o buckets externos).
+                      </p>
+                    </div>
+
+                    <div className="flex items-center bg-slate-200 dark:bg-slate-700 p-0.5 rounded-lg text-[10px] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => setImageUploadMode('upload')}
+                        className={`px-2 py-1 rounded-md transition-colors flex items-center gap-1 ${
+                          imageUploadMode === 'upload'
+                            ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-sm'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <Upload className="w-3 h-3" />
+                        <span>Subir Archivo</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setImageUploadMode('url')}
+                        className={`px-2 py-1 rounded-md transition-colors flex items-center gap-1 ${
+                          imageUploadMode === 'url'
+                            ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-sm'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <LinkIcon className="w-3 h-3" />
+                        <span>Ingresar URL</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {imageUploadMode === 'upload' ? (
+                    <div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/avif"
+                        onChange={handleImageFileSelect}
+                        className="hidden"
+                        id="zona-image-upload-input"
+                      />
+                      <label
+                        htmlFor="zona-image-upload-input"
+                        className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-600 dark:hover:border-emerald-500 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors bg-white dark:bg-slate-900"
+                      >
+                        {isOptimizingImage ? (
+                          <div className="flex items-center gap-2 text-emerald-600 font-bold py-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Optimizando y comprimiendo imagen a WebP...</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center text-center">
+                            <Upload className="w-6 h-6 text-slate-400 dark:text-slate-500 mb-1" />
+                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                              Haga clic para seleccionar una fotografía desde su equipo
+                            </span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                              Formatos admitidos: JPG, PNG, WEBP (se escala a máx 1000px y comprime automáticamente)
+                            </span>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        type="url"
+                        value={formData.zon_imagen_url}
+                        onChange={(e) => setFormData({ ...formData, zon_imagen_url: e.target.value })}
+                        placeholder="https://images.unsplash.com/photo-..."
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-mono text-[11px] focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                      />
+                    </div>
+                  )}
+
+                  {/* Previsualizador */}
+                  {formData.zon_imagen_url && (
+                    <div className="flex items-center gap-3 p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                      <img
+                        src={formData.zon_imagen_url}
+                        alt="Previsualización"
+                        className="w-16 h-12 object-cover rounded-lg border border-slate-200 dark:border-slate-700 shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 font-bold text-[10px]">
+                            <Sparkles className="w-2.5 h-2.5" />
+                            {imageSizeKb ? `WebP Optimizado (~${imageSizeKb} KB)` : 'Imagen Activa'}
+                          </span>
+                          <span className="text-[10px] text-slate-400">Persistencia directa en Aiven MySQL</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                          {formData.zon_imagen_url.startsWith('data:') ? 'Imagen codificada en Base64 WebP' : formData.zon_imagen_url}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -429,6 +708,30 @@ export default function AdminZonasCrudPage() {
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                   />
                 </div>
+
+                {/* Puntos de Interés */}
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Puntos de Interés (uno por línea):</label>
+                  <textarea
+                    rows={2}
+                    value={puntosInteresText}
+                    onChange={(e) => setPuntosInteresText(e.target.value)}
+                    placeholder="Mirador de aves&#10;Cascada natural"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                  />
+                </div>
+
+                {/* Recomendaciones */}
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Recomendaciones (una por línea):</label>
+                  <textarea
+                    rows={2}
+                    value={recomendacionesText}
+                    onChange={(e) => setRecomendacionesText(e.target.value)}
+                    placeholder="Llevar repelente&#10;Zapatillas de trekking"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                  />
+                </div>
               </div>
 
               {/* Modal Buttons */}
@@ -436,16 +739,27 @@ export default function AdminZonasCrudPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold transition-colors"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md flex items-center gap-1.5 transition-all"
+                  disabled={isSubmitting || isOptimizingImage}
+                  className="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-md flex items-center gap-1.5 transition-all disabled:opacity-50"
                 >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>{editingId ? 'Guardar Cambios' : 'Crear Registro'}</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Guardando en Aiven MySQL...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>{editingId ? 'Guardar Cambios' : 'Crear Registro'}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

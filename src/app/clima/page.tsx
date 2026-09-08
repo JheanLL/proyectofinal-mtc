@@ -2,7 +2,7 @@ import { INITIAL_ESTACIONES } from '@/lib/db/initial-data';
 import { fetchAllLiveWeathers } from '@/lib/weather';
 import ClimaClientView from '@/components/weather/ClimaClientView';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300; // Caché de 5 minutos en Vercel Edge CDN
 
 export default async function ClimaPage() {
   const liveClimas = await fetchAllLiveWeathers();

@@ -9,6 +9,7 @@ import {
   Train, 
   Footprints, 
   Sparkles, 
+  RefreshCw,
 } from 'lucide-react';
 import { formatDistance, formatDurationMin, formatCurrencyPEN } from '@/lib/utils';
 
@@ -16,6 +17,7 @@ export default function ZonasPage() {
   const [zonas, setZonas] = useState<TblZonaTuristica[]>([]);
   const [estaciones, setEstaciones] = useState<TblEstacion[]>([]);
   const [preferencias, setPreferencias] = useState<TblPreferenciaTuristica[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,6 +42,21 @@ export default function ZonasPage() {
       .catch(() => {});
   }, []);
 
+  const refreshZonas = async () => {
+    setIsRefreshing(true);
+    try {
+      const res = await fetch(`/api/zonas?refresh=true&t=${Date.now()}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setZonas(data.data);
+      }
+    } catch (e) {
+      console.error('Error refreshing zonas:', e);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const filteredZonas = zonas.filter((zona) => {
     const matchesSearch = 
       zona.zon_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,9 +75,14 @@ export default function ZonasPage() {
       {/* Header Banner */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 text-xs font-bold mb-1.5">
-            <Footprints className="w-3.5 h-3.5" />
-            <span>Catálogo Travel Group Perú</span>
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 text-xs font-bold">
+              <Footprints className="w-3.5 h-3.5" />
+              <span>Catálogo Travel Group Perú</span>
+            </div>
+            <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+              • Caché de 5 min (Vercel Edge)
+            </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Zonas Turísticas y Circuitos Peatonales
@@ -70,13 +92,25 @@ export default function ZonasPage() {
           </p>
         </div>
 
-        <Link
-          href="/planificador"
-          className="bg-red-700 hover:bg-red-800 text-white font-bold text-xs px-4 py-2.5 rounded-2xl shadow-md flex items-center gap-1.5 transition-all self-start md:self-auto"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Planificar Ruta</span>
-        </Link>
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          <button
+            onClick={refreshZonas}
+            disabled={isRefreshing}
+            className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs px-3.5 py-2.5 rounded-2xl flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            title="Refrescar catálogo saltando la caché"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
+          </button>
+
+          <Link
+            href="/planificador"
+            className="bg-red-700 hover:bg-red-800 text-white font-bold text-xs px-4 py-2.5 rounded-2xl shadow-md flex items-center gap-1.5 transition-all"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Planificar Ruta</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filter Toolbar */}

@@ -25,8 +25,12 @@ export function getMySqlPool(): Pool {
         const parsed = new URL(connUri);
         host = parsed.hostname || host;
         port = parseInt(parsed.port || String(port), 10);
-        user = decodeURIComponent(parsed.username || user);
-        password = decodeURIComponent(parsed.password || password);
+        if (parsed.username && !parsed.username.includes('CLICK_TO')) {
+          user = decodeURIComponent(parsed.username);
+        }
+        if (parsed.password && !parsed.password.includes('REVEAL_PASSWORD')) {
+          password = decodeURIComponent(parsed.password);
+        }
         database = parsed.pathname.replace(/^\//, '') || database;
       } catch (e) {
         console.warn('Error parsing DATABASE_URL:', e);
@@ -65,7 +69,7 @@ export async function execute(sql: string, params: any[] = []) {
 export async function logAuditoria(
   usuarioId: number | null,
   usuarioEmail: string | null,
-  accion: 'LOGIN' | 'CREATE' | 'UPDATE' | 'DELETE' | 'SYNC',
+  accion: 'LOGIN' | 'CREATE' | 'UPDATE' | 'DELETE' | 'SYNC' | 'RESTORE',
   modulo: 'ZONAS' | 'HORARIOS' | 'INTEGRACIONES' | 'AUTH',
   registroId: string | null = null,
   detalles: any = null,

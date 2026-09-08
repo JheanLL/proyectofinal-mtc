@@ -39,7 +39,7 @@ export async function fetchLiveWeatherForStation(estacionId: string, forceFresh:
     
     const fetchOptions: RequestInit = forceFresh 
       ? { cache: 'no-store' } 
-      : { next: { revalidate: 600 } };
+      : { next: { revalidate: 300 } };
 
     const res = await fetch(url, fetchOptions);
     if (!res.ok) throw new Error(`API fetch error: ${res.status}`);

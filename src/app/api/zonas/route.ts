@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query, execute, logAuditoria } from '@/lib/db/mysql';
 import { INITIAL_ZONAS_TURISTICAS } from '@/lib/db/initial-data';
 import { TblZonaTuristica } from '@/types/database';
+import { getSessionFromRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,13 +22,39 @@ function parseZonaRow(r: any): TblZonaTuristica {
   };
 }
 
-// 1. GET - Obtener zonas (todas o filtradas por estacionId / categoria)
+function getClientIp(request: NextRequest): string {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  return forwardedFor ? forwardedFor.split(',')[0].trim() : '127.0.0.1';
+}
+
+// 1. GET - Obtener zonas (todas o filtradas por estacionId / categoria) con caché de 5 minutos y filtros de exclusión
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const estacionId = searchParams.get('estacionId');
   const categoria = searchParams.get('categoria');
+  const isRefresh = searchParams.get('refresh') === 'true' || searchParams.has('t');
+
+  const headers = {
+    'Cache-Control': isRefresh 
+      ? 'no-store, no-cache, must-revalidate' 
+      : 'public, s-maxage=300, stale-while-revalidate=60',
+  };
+
+  let excludedIds: string[] = [];
 
   try {
+    // Consultar tabla de filtros y exclusiones del servidor
+    try {
+      const exclusionRows = await query<any>(
+        "SELECT fil_registro_id FROM tbl_filtro_exclusion WHERE fil_modulo = 'ZONAS' AND fil_activo = TRUE"
+      );
+      if (exclusionRows && exclusionRows.length > 0) {
+        excludedIds = exclusionRows.map(r => r.fil_registro_id);
+      }
+    } catch (e) {
+      // Tabla puede no existir aún en entornos de prueba aislados
+    }
+
     let sql = 'SELECT * FROM tbl_zona_turistica WHERE zon_activo = TRUE';
     const params: any[] = [];
 
@@ -40,40 +67,71 @@ export async function GET(request: NextRequest) {
       params.push(categoria);
     }
 
+    if (excludedIds.length > 0) {
+      sql += ` AND zon_id NOT IN (${excludedIds.map(() => '?').join(', ')})`;
+      params.push(...excludedIds);
+    }
+
     sql += ' ORDER BY zon_distancia_metros ASC';
 
     const rows = await query<any>(sql, params);
     if (rows && rows.length > 0) {
-      const data = rows.map(parseZonaRow);
+      const data = rows.map(parseZonaRow).filter(z => !excludedIds.includes(z.zon_id));
       return NextResponse.json({
         success: true,
-        fuente: 'Travel Group Perú (Aiven MySQL)',
+        fuente: 'Travel Group Perú (Aiven MySQL SSOT)',
         data,
         total: data.length,
+        cacheMinutes: 5,
+        exclusionesFiltradas: excludedIds.length,
         timestamp: new Date().toISOString(),
-      });
+      }, { headers });
     }
   } catch (err) {
     console.warn('[API Zonas] Fallback local debido a:', err);
   }
 
-  // Fallback local
+  // Fallback local con filtro de exclusiones aplicado en servidor
   let fallback = INITIAL_ZONAS_TURISTICAS;
   if (estacionId) fallback = fallback.filter(z => z.zon_estacion_id === estacionId);
   if (categoria) fallback = fallback.filter(z => z.zon_categoria === categoria);
+  if (excludedIds.length > 0) fallback = fallback.filter(z => !excludedIds.includes(z.zon_id));
 
   return NextResponse.json({
     success: true,
     fuente: 'Travel Group Perú (Local Fallback)',
     data: fallback,
     total: fallback.length,
+    cacheMinutes: 5,
+    exclusionesFiltradas: excludedIds.length,
     timestamp: new Date().toISOString(),
-  });
+  }, { headers });
 }
 
 // 2. POST - Crear nueva zona turística en Aiven MySQL
 export async function POST(request: NextRequest) {
   try {
+    const session = await getSessionFromRequest(request);
+
+    // Validación de autenticación y autorización RBAC
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: 'Autenticación requerida. Inicie sesión para registrar zonas turísticas.' },
+        { status: 401 }
+      );
+    }
+
+    if (session.role !== 'ADMIN' && session.role !== 'TRAVEL_GROUP') {
+      return NextResponse.json(
+        { success: false, error: 'Acceso Denegado. Solo Travel Group Perú o Admin MTC pueden crear zonas turísticas.' },
+        { status: 403 }
+      );
+    }
+
+    const usuarioId = session.userId;
+    const usuarioEmail = session.email;
+    const ip = getClientIp(request);
+
     const body = await request.json();
     const zon_id = body.zon_id || `zon_${Date.now()}`;
 
@@ -109,12 +167,13 @@ export async function POST(request: NextRequest) {
     );
 
     await logAuditoria(
-      2,
-      'operaciones@travelgroup.pe',
+      usuarioId,
+      usuarioEmail,
       'CREATE',
       'ZONAS',
       zon_id,
-      { nombre: body.zon_nombre, estacion: body.zon_estacion_id }
+      { nombre: body.zon_nombre, estacion: body.zon_estacion_id, operador: usuarioEmail },
+      ip
     );
 
     return NextResponse.json({
@@ -127,8 +186,29 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// 3. PUT - Actualizar zona
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getSessionFromRequest(request);
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: 'Autenticación requerida. Inicie sesión para actualizar zonas turísticas.' },
+        { status: 401 }
+      );
+    }
+
+    if (session.role !== 'ADMIN' && session.role !== 'TRAVEL_GROUP') {
+      return NextResponse.json(
+        { success: false, error: 'Acceso Denegado. Solo Travel Group Perú o Admin MTC pueden modificar zonas turísticas.' },
+        { status: 403 }
+      );
+    }
+
+    const usuarioId = session.userId;
+    const usuarioEmail = session.email;
+    const ip = getClientIp(request);
+
     const body = await request.json();
     const { zon_id, ...data } = body;
 
@@ -160,12 +240,13 @@ export async function PUT(request: NextRequest) {
     }
 
     await logAuditoria(
-      2,
-      'operaciones@travelgroup.pe',
+      usuarioId,
+      usuarioEmail,
       'UPDATE',
       'ZONAS',
       zon_id,
-      { camposModificados: Object.keys(data) }
+      { camposModificados: Object.keys(data), operador: usuarioEmail },
+      ip
     );
 
     return NextResponse.json({
@@ -181,6 +262,26 @@ export async function PUT(request: NextRequest) {
 // 4. DELETE - Eliminar zona
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getSessionFromRequest(request);
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: 'Autenticación requerida. Inicie sesión para eliminar zonas turísticas.' },
+        { status: 401 }
+      );
+    }
+
+    if (session.role !== 'ADMIN' && session.role !== 'TRAVEL_GROUP') {
+      return NextResponse.json(
+        { success: false, error: 'Acceso Denegado. Solo Travel Group Perú o Admin MTC pueden eliminar zonas turísticas.' },
+        { status: 403 }
+      );
+    }
+
+    const usuarioId = session.userId;
+    const usuarioEmail = session.email;
+    const ip = getClientIp(request);
+
     const { searchParams } = new URL(request.url);
     const zon_id = searchParams.get('id');
 
@@ -188,15 +289,46 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Se requiere id para eliminar' }, { status: 400 });
     }
 
+    // 1. Obtener snapshot completo antes de eliminar para permitir restauración
+    let zonaSnapshot: any = null;
+    try {
+      const snapRows = await query<any>('SELECT * FROM tbl_zona_turistica WHERE zon_id = ?', [zon_id]);
+      if (snapRows && snapRows.length > 0) {
+        zonaSnapshot = snapRows[0];
+      }
+    } catch (snapErr) {
+      console.warn('Advertencia obteniendo snapshot de zona:', snapErr);
+    }
+
+    // 2. Registrar en tabla de filtros y exclusiones del servidor
+    try {
+      await execute(
+        `INSERT INTO tbl_filtro_exclusion (fil_modulo, fil_registro_id, fil_motivo, fil_usuario_email) 
+         VALUES ('ZONAS', ?, 'Eliminado por operador Travel Group / MTC', ?)`,
+        [zon_id, usuarioEmail]
+      );
+    } catch (filterErr) {
+      console.warn('Advertencia al registrar en tbl_filtro_exclusion:', filterErr);
+    }
+
+    // 3. Desactivación lógica / borrado en tbl_zona_turistica
+    await execute('UPDATE tbl_zona_turistica SET zon_activo = FALSE WHERE zon_id = ?', [zon_id]);
     await execute('DELETE FROM tbl_zona_turistica WHERE zon_id = ?', [zon_id]);
 
     await logAuditoria(
-      2,
-      'operaciones@travelgroup.pe',
+      usuarioId,
+      usuarioEmail,
       'DELETE',
       'ZONAS',
       zon_id,
-      { accion: 'Eliminación permanente de zona' }
+      { 
+        accion: 'Eliminación de zona turística', 
+        operador: usuarioEmail,
+        restaurable: true,
+        nombre: zonaSnapshot?.zon_nombre || zon_id,
+        registroSnapshot: zonaSnapshot
+      },
+      ip
     );
 
     return NextResponse.json({
