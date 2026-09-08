@@ -100,6 +100,15 @@ export default function AdminDashboardPage() {
             <span>Gestionar Trenes</span>
           </Link>
 
+          <Link
+            href="/informe"
+            className="bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+            title="Ver y consultar los informes turísticos generados"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Ver Informes</span>
+          </Link>
+
           <button
             onClick={handleResetData}
             className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 flex items-center gap-1.5 transition-colors"
@@ -157,16 +166,20 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Consultas / Informes */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center justify-between">
+        <Link
+          href="/informe"
+          className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center justify-between hover:border-purple-300 dark:hover:border-purple-700 transition-all group cursor-pointer"
+          title="Ver todos los informes turísticos generados"
+        >
           <div>
             <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Itinerarios</span>
-            <span className="text-xl sm:text-2xl font-black text-purple-700 dark:text-purple-400 mt-0.5 block">{itinerarios.length}</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400">Emitidos</span>
+            <span className="text-xl sm:text-2xl font-black text-purple-700 dark:text-purple-400 mt-0.5 block group-hover:scale-105 transition-transform">{itinerarios.length}</span>
+            <span className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">Ver Informes &rarr;</span>
           </div>
-          <div className="p-2.5 bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 rounded-2xl">
+          <div className="p-2.5 bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400 rounded-2xl group-hover:bg-purple-100 dark:group-hover:bg-purple-900/50 transition-colors">
             <FileText className="w-5 h-5" />
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Entity Navigation Cards */}
