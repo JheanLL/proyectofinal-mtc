@@ -637,7 +637,7 @@ ${shareUrl}`;
                 📍 Puntos de Interés durante el recorrido peatonal:
               </span>
               <div className="flex flex-wrap gap-2">
-                {zonaTuristica.zon_puntos_interes.map((p, i) => (
+                {(zonaTuristica.zon_puntos_interes || []).map((p, i) => (
                   <span key={i} className="bg-emerald-50 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-200 px-3 py-1 rounded-xl border border-emerald-200 dark:border-emerald-800 font-semibold">
                     ✓ {p}
                   </span>

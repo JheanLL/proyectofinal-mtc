@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { 
   getZonasTuristicas, 
   getEstaciones, 
-  createZonaTuristica, 
-  updateZonaTuristica, 
-  deleteZonaTuristica 
+  syncZonaToStorage,
+  syncZonasListToStorage,
+  deleteZonaFromStorage
 } from '@/lib/db/store';
 import { 
   TblZonaTuristica, 
@@ -86,14 +86,16 @@ export default function AdminZonasCrudPage() {
 
     // Sincronización en vivo con Aiven MySQL
     try {
+      const cacheBust = `?t=${Date.now()}`;
       const [resZonas, resEst] = await Promise.all([
-        fetch('/api/zonas'),
-        fetch('/api/estaciones'),
+        fetch(`/api/zonas${cacheBust}`),
+        fetch(`/api/estaciones${cacheBust}`),
       ]);
       const dataZ = await resZonas.json();
       const dataE = await resEst.json();
       if (dataZ.success && Array.isArray(dataZ.data)) {
         setZonas(dataZ.data);
+        syncZonasListToStorage(dataZ.data);
       }
       if (dataE.success && Array.isArray(dataE.data)) {
         setEstaciones(dataE.data);
@@ -209,13 +211,13 @@ export default function AdminZonasCrudPage() {
         return;
       }
 
-      deleteZonaTuristica(id);
+      deleteZonaFromStorage(id);
       setStatusMessage({ type: 'success', text: `Zona "${nombre}" eliminada exitosamente.` });
       setTimeout(() => setStatusMessage(null), 4000);
       await reloadData();
     } catch (err: any) {
       console.error(err);
-      deleteZonaTuristica(id);
+      deleteZonaFromStorage(id);
       reloadData();
     }
   };
@@ -249,7 +251,7 @@ export default function AdminZonasCrudPage() {
           setIsSubmitting(false);
           return;
         }
-        updateZonaTuristica(editingId, payload);
+        syncZonaToStorage(data.data || { ...payload, zon_id: editingId });
         setStatusMessage({ type: 'success', text: 'Zona turística actualizada en Aiven MySQL exitosamente.' });
       } else {
         const res = await fetch('/api/zonas', {
@@ -263,7 +265,9 @@ export default function AdminZonasCrudPage() {
           setIsSubmitting(false);
           return;
         }
-        createZonaTuristica(payload);
+        if (data.data) {
+          syncZonaToStorage(data.data);
+        }
         setStatusMessage({ type: 'success', text: 'Nueva zona turística registrada en Aiven MySQL exitosamente.' });
       }
 
@@ -492,7 +496,16 @@ export default function AdminZonasCrudPage() {
                   <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">Estación de Partida (Solo Lectura): *</label>
                   <select
                     value={formData.zon_estacion_id}
-                    onChange={(e) => setFormData({ ...formData, zon_estacion_id: e.target.value })}
+                    onChange={(e) => {
+                      const newEstId = e.target.value;
+                      const targetEst = estaciones.find(est => est.est_id === newEstId);
+                      setFormData(prev => ({
+                        ...prev,
+                        zon_estacion_id: newEstId,
+                        zon_latitud: (!editingId && targetEst) ? Number((Number(targetEst.est_latitud) + 0.003).toFixed(6)) : prev.zon_latitud,
+                        zon_longitud: (!editingId && targetEst) ? Number((Number(targetEst.est_longitud) + 0.003).toFixed(6)) : prev.zon_longitud,
+                      }));
+                    }}
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                   >
                     {estaciones.map(e => (

@@ -93,18 +93,32 @@ function PlanificadorContent() {
     setPreferencias(loadedPrefs);
     setHorarios(loadedHorarios);
 
-    // Call live APIs
-    fetch('/api/estaciones')
+    // Call live APIs with cache buster
+    const t = Date.now();
+    fetch(`/api/estaciones?t=${t}`)
       .then(res => res.json())
       .then(data => { if (data.data) setEstaciones(data.data); })
       .catch(() => {});
 
-    fetch('/api/zonas')
+    fetch(`/api/zonas?t=${t}`)
       .then(res => res.json())
-      .then(data => { if (data.data) setZonas(data.data); })
+      .then(data => { 
+        if (data.data) {
+          setZonas(data.data);
+          const qZonaId = searchParams.get('zonaId');
+          if (qZonaId) {
+            const found = (data.data as TblZonaTuristica[]).find(z => z.zon_id === qZonaId);
+            if (found) {
+              setSelectedZonaId(qZonaId);
+              setDestinoEstacionId(found.zon_estacion_id);
+              setSelectedPreferencias([found.zon_categoria]);
+            }
+          }
+        }
+      })
       .catch(() => {});
 
-    fetch('/api/horarios')
+    fetch(`/api/horarios?t=${t}`)
       .then(res => res.json())
       .then(data => { if (data.data) setHorarios(data.data); })
       .catch(() => {});

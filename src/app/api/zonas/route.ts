@@ -27,17 +27,15 @@ function getClientIp(request: NextRequest): string {
   return forwardedFor ? forwardedFor.split(',')[0].trim() : '127.0.0.1';
 }
 
-// 1. GET - Obtener zonas (todas o filtradas por estacionId / categoria) con caché de 5 minutos y filtros de exclusión
+// 1. GET - Obtener zonas (todas o filtradas por id / estacionId / categoria) con datos en tiempo real y filtros de exclusión
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
   const estacionId = searchParams.get('estacionId');
   const categoria = searchParams.get('categoria');
-  const isRefresh = searchParams.get('refresh') === 'true' || searchParams.has('t');
 
   const headers = {
-    'Cache-Control': isRefresh 
-      ? 'no-store, no-cache, must-revalidate' 
-      : 'public, s-maxage=300, stale-while-revalidate=60',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
   };
 
   let excludedIds: string[] = [];
@@ -58,6 +56,10 @@ export async function GET(request: NextRequest) {
     let sql = 'SELECT * FROM tbl_zona_turistica WHERE zon_activo = TRUE';
     const params: any[] = [];
 
+    if (id) {
+      sql += ' AND zon_id = ?';
+      params.push(id);
+    }
     if (estacionId) {
       sql += ' AND zon_estacion_id = ?';
       params.push(estacionId);
@@ -82,7 +84,6 @@ export async function GET(request: NextRequest) {
         fuente: 'Travel Group Perú (Aiven MySQL SSOT)',
         data,
         total: data.length,
-        cacheMinutes: 5,
         exclusionesFiltradas: excludedIds.length,
         timestamp: new Date().toISOString(),
       }, { headers });
@@ -93,6 +94,7 @@ export async function GET(request: NextRequest) {
 
   // Fallback local con filtro de exclusiones aplicado en servidor
   let fallback = INITIAL_ZONAS_TURISTICAS;
+  if (id) fallback = fallback.filter(z => z.zon_id === id);
   if (estacionId) fallback = fallback.filter(z => z.zon_estacion_id === estacionId);
   if (categoria) fallback = fallback.filter(z => z.zon_categoria === categoria);
   if (excludedIds.length > 0) fallback = fallback.filter(z => !excludedIds.includes(z.zon_id));

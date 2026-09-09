@@ -230,7 +230,7 @@ export default function WalkingRouteMap({
           mapInstanceRef.current = null;
         }
 
-        if (!isMounted || !mapContainerRef.current) return;
+        if (!isMounted || !mapContainerRef.current || !estacion || !zona) return;
 
         const estLat = Number(estacion.est_latitud) || -13.155;
         const estLng = Number(estacion.est_longitud) || -72.525;
@@ -570,7 +570,7 @@ export default function WalkingRouteMap({
             </li>
 
             {/* Intermediate Scenic Highlights */}
-            {zona.zon_puntos_interes.map((pto, idx) => (
+            {(zona.zon_puntos_interes || []).map((pto, idx) => (
               <li key={idx} className="ml-6">
                 <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-amber-500 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-xs font-bold">
                   {idx + 2}
@@ -590,7 +590,7 @@ export default function WalkingRouteMap({
             {/* Arrival at Destination */}
             <li className="ml-6">
               <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-emerald-600 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-xs font-bold">
-                {zona.zon_puntos_interes.length + 2}
+                {(zona.zon_puntos_interes || []).length + 2}
               </span>
               <div className="bg-emerald-50 dark:bg-emerald-950/30 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 shadow-sm space-y-1">
                 <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
@@ -608,7 +608,7 @@ export default function WalkingRouteMap({
             {/* Return to Station */}
             <li className="ml-6">
               <span className="absolute -left-3 flex items-center justify-center w-6 h-6 bg-sky-600 text-white rounded-full ring-4 ring-white dark:ring-slate-900 text-xs font-bold">
-                {zona.zon_puntos_interes.length + 3}
+                {(zona.zon_puntos_interes || []).length + 3}
               </span>
               <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
                 <span className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
@@ -627,14 +627,14 @@ export default function WalkingRouteMap({
       )}
 
       {/* Recommendations Box with High Contrast */}
-      {showElevationProfile && zona.zon_recomendaciones.length > 0 && (
+      {showElevationProfile && (zona.zon_recomendaciones || []).length > 0 && (
         <div className="p-4 sm:p-5 bg-slate-100 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-2 text-xs text-slate-800 dark:text-slate-200">
           <span className="font-black flex items-center gap-1.5 text-slate-900 dark:text-white shrink-0">
             <AlertCircle className="w-4 h-4 text-red-600" />
             Recomendaciones Oficiales de Seguridad:
           </span>
           <div className="flex flex-wrap gap-1.5">
-            {zona.zon_recomendaciones.map((rec, i) => (
+            {(zona.zon_recomendaciones || []).map((rec, i) => (
               <span key={i} className="bg-white dark:bg-slate-900 px-3 py-1 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 font-semibold shadow-2xs">
                 • {rec}
               </span>

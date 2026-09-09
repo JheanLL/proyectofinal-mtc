@@ -14,12 +14,10 @@ import {
   Layers, 
   ArrowLeft,
   Eye,
-  CheckCircle2,
   AlertTriangle,
   FileCode,
   Lock,
-  Sparkles,
-  RotateCcw
+  Sparkles
 } from 'lucide-react';
 
 interface AuditItem {
@@ -43,8 +41,6 @@ export default function AuditoriaAdminPage() {
   const [selectedAccion, setSelectedAccion] = useState<string>('TODAS');
   const [searchFilter, setSearchFilter] = useState('');
   const [activeDiffModal, setActiveDiffModal] = useState<AuditItem | null>(null);
-  const [restoringId, setRestoringId] = useState<number | null>(null);
-  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchAuditoria = async () => {
     setIsLoading(true);
@@ -94,33 +90,6 @@ export default function AuditoriaAdminPage() {
       (l.aud_accion && l.aud_accion.toLowerCase().includes(term))
     );
   });
-
-  const handleRestaurar = async (item: AuditItem) => {
-    if (!confirm(`¿Está seguro de restaurar el registro "${item.aud_registro_id}"? Se reincorporará con todos sus datos, imágenes y coordenadas originales a la base de datos oficial.`)) {
-      return;
-    }
-
-    setRestoringId(item.aud_id);
-    try {
-      const res = await fetch('/api/auditoria/restore', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aud_id: item.aud_id }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        alert(data.error || 'Error al restaurar el registro.');
-        return;
-      }
-      setToastMessage({ type: 'success', text: data.mensaje || `Registro ${item.aud_registro_id} restaurado exitosamente.` });
-      setTimeout(() => setToastMessage(null), 5000);
-      await fetchAuditoria();
-    } catch (err: any) {
-      alert(`Error de conexión: ${err.message}`);
-    } finally {
-      setRestoringId(null);
-    }
-  };
 
   const getActionBadge = (accion: string) => {
     switch (accion) {
@@ -268,23 +237,10 @@ export default function AuditoriaAdminPage() {
           <option value="CREATE">CREATE (Altas)</option>
           <option value="UPDATE">UPDATE (Ediciones)</option>
           <option value="DELETE">DELETE (Bajas)</option>
-          <option value="RESTORE">RESTORE (Restauraciones)</option>
           <option value="SYNC">SYNC (Sincronizaciones)</option>
           <option value="LOGIN">LOGIN (Inicios de Sesión)</option>
         </select>
       </div>
-
-      {/* Notificación Toast de Restauración */}
-      {toastMessage && (
-        <div className={`p-4 rounded-2xl border flex items-center gap-3 animate-fade-in ${
-          toastMessage.type === 'success'
-            ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
-            : 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
-        }`}>
-          <CheckCircle2 className="w-5 h-5 shrink-0" />
-          <p className="text-xs font-bold">{toastMessage.text}</p>
-        </div>
-      )}
 
       {/* Main Table */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -298,7 +254,7 @@ export default function AuditoriaAdminPage() {
                 <th className="p-3">Módulo</th>
                 <th className="p-3">Registro Afectado</th>
                 <th className="p-3">IP Origen</th>
-                <th className="p-3 text-right">Detalle / Restauración</th>
+                <th className="p-3 text-right">Detalle</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -353,18 +309,6 @@ export default function AuditoriaAdminPage() {
                           >
                             <Eye className="w-3 h-3 text-blue-500" />
                             <span>Ver Diff</span>
-                          </button>
-                        )}
-
-                        {l.aud_accion === 'DELETE' && (l.aud_modulo === 'ZONAS' || l.aud_modulo === 'HORARIOS') && (
-                          <button
-                            onClick={() => handleRestaurar(l)}
-                            disabled={restoringId === l.aud_id}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm transition-all disabled:opacity-50"
-                            title="Restaurar elemento eliminado con todos sus datos e imágenes"
-                          >
-                            <RotateCcw className={`w-3 h-3 ${restoringId === l.aud_id ? 'animate-spin' : ''}`} />
-                            <span>{restoringId === l.aud_id ? 'Restaurando...' : 'Restaurar'}</span>
                           </button>
                         )}
                       </div>

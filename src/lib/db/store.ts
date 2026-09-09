@@ -82,6 +82,25 @@ export const getZonasByEstacion = (estacionId: string, categoria?: CategoriaTuri
   });
 };
 
+export const syncZonaToStorage = (zona: TblZonaTuristica): void => {
+  const list = getZonasTuristicas();
+  const exists = list.some(z => z.zon_id === zona.zon_id);
+  const updatedList = exists 
+    ? list.map(z => z.zon_id === zona.zon_id ? zona : z)
+    : [zona, ...list];
+  saveToStorage(STORAGE_KEYS.ZONAS, updatedList);
+};
+
+export const syncZonasListToStorage = (zonasList: TblZonaTuristica[]): void => {
+  saveToStorage(STORAGE_KEYS.ZONAS, zonasList);
+};
+
+export const deleteZonaFromStorage = (id: string): void => {
+  const list = getZonasTuristicas();
+  const filtered = list.filter(z => z.zon_id !== id);
+  saveToStorage(STORAGE_KEYS.ZONAS, filtered);
+};
+
 export const createZonaTuristica = (zona: Omit<TblZonaTuristica, 'zon_id'>): TblZonaTuristica => {
   const list = getZonasTuristicas();
   const newZona: TblZonaTuristica = {
@@ -133,6 +152,15 @@ export const deleteZonaTuristica = (id: string): boolean => {
   }
 
   return true;
+};
+
+export const syncHorarioToStorage = (horario: TblHorarioTren): void => {
+  const list = getHorariosTren();
+  const exists = list.some(h => h.hor_id === horario.hor_id);
+  const updatedList = exists 
+    ? list.map(h => h.hor_id === horario.hor_id ? horario : h)
+    : [horario, ...list];
+  saveToStorage(STORAGE_KEYS.HORARIOS, updatedList);
 };
 
 // 3. GESTIÓN DE HORARIOS Y TARIFAS DE TREN (PeruRail CRUD)

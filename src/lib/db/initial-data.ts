@@ -129,7 +129,7 @@ export const INITIAL_ESTACIONES: TblEstacion[] = [
     est_longitud: -72.5255,
     est_descripcion: 'Estación terminal a orillas del río Vilcanota, puerta de entrada peatonal y vehicular al Santuario Histórico de Machu Picchu.',
     est_servicios: ['Centro de atención al visitante', 'Boletería', 'Embarque preferencial', 'Asistencia médica', 'Oficina MTC / Dircetur'],
-    est_imagen_url: 'https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=1200&q=80',
+    est_imagen_url: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=1200&q=80',
     est_telefono_contacto: '+51 (84) 581440',
   },
   {
@@ -483,7 +483,7 @@ export const INITIAL_ZONAS_TURISTICAS: TblZonaTuristica[] = [
     ],
     zon_latitud: -13.4935,
     zon_longitud: -72.0482,
-    zon_imagen_url: 'https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=1200&q=80',
+    zon_imagen_url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
     zon_precio_entrada_pen: 0,
     zon_horario_atencion: 'Abierto en horario diurno',
     zon_es_destacado: false,

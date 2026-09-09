@@ -7,8 +7,7 @@ import {
   getZonasTuristicas, 
   getHorariosTren, 
   getIntegraciones,
-  getItinerarios,
-  resetDatabaseToDefaults 
+  getItinerarios 
 } from '@/lib/db/store';
 import { 
   TblEstacion, 
@@ -27,7 +26,6 @@ import {
   ArrowRight,
   TrendingUp,
   Printer,
-  RotateCcw,
   History
 } from 'lucide-react';
 import { formatCurrencyPEN, formatDistance, formatDurationMin } from '@/lib/utils';
@@ -52,13 +50,6 @@ export default function AdminDashboardPage() {
     return () => window.removeEventListener('mtc_db_updated', reloadData);
   }, []);
 
-  const handleResetData = () => {
-    if (confirm('¿Restablecer la base de datos a sus valores iniciales?')) {
-      resetDatabaseToDefaults();
-      reloadData();
-      alert('Base de datos restablecida.');
-    }
-  };
 
   const filteredZonas = zonas.filter(z => 
     selectedStationFilter === 'todos' || z.zon_estacion_id === selectedStationFilter
@@ -109,13 +100,6 @@ export default function AdminDashboardPage() {
             <span>Ver Informes</span>
           </Link>
 
-          <button
-            onClick={handleResetData}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 flex items-center gap-1.5 transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Restablecer</span>
-          </button>
 
           <Link
             href="/admin/integraciones"

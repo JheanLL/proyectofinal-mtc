@@ -25,19 +25,61 @@ export default function ZonaDetailPage() {
   const [zona, setZona] = useState<TblZonaTuristica | null>(null);
   const [estacion, setEstacion] = useState<TblEstacion | null>(null);
   const [clima, setClima] = useState<TblPronosticoClima | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
-    const loadedZona = getZonaById(id);
-    if (loadedZona) {
-      setZona(loadedZona);
-      const loadedEstacion = getEstacionById(loadedZona.zon_estacion_id);
-      if (loadedEstacion) {
-        setEstacion(loadedEstacion);
-        setClima(getClimaByEstacion(loadedEstacion.est_id));
+    let isMounted = true;
+
+    async function loadData() {
+      setIsLoading(true);
+      let currentZona = getZonaById(id);
+      let currentEstacion = currentZona ? getEstacionById(currentZona.zon_estacion_id) : undefined;
+
+      // Si no se encuentra en store local, consultar a la API de Aiven MySQL
+      if (!currentZona || !currentEstacion) {
+        try {
+          const [resZonas, resEst] = await Promise.all([
+            fetch(`/api/zonas?id=${id}&t=${Date.now()}`).then(r => r.json()),
+            fetch(`/api/estaciones?t=${Date.now()}`).then(r => r.json())
+          ]);
+
+          if (resZonas.success && resZonas.data && resZonas.data.length > 0) {
+            currentZona = resZonas.data[0];
+          }
+          if (resEst.success && Array.isArray(resEst.data) && currentZona) {
+            currentEstacion = resEst.data.find((e: TblEstacion) => e.est_id === currentZona!.zon_estacion_id);
+          }
+        } catch (e) {
+          console.warn('Error fetching zona from API:', e);
+        }
+      }
+
+      if (isMounted) {
+        if (currentZona) setZona(currentZona);
+        if (currentEstacion) {
+          setEstacion(currentEstacion);
+          setClima(getClimaByEstacion(currentEstacion.est_id));
+        }
+        setIsLoading(false);
       }
     }
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-3">
+        <div className="w-8 h-8 border-4 border-red-700 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p className="text-xs font-bold text-slate-500">Cargando atractivo turístico...</p>
+      </div>
+    );
+  }
 
   if (!zona || !estacion) {
     return (
@@ -140,7 +182,7 @@ export default function ZonaDetailPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {zona.zon_puntos_interes.map((pto, idx) => (
+              {(zona.zon_puntos_interes || []).map((pto, idx) => (
                 <div key={idx} className="bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-start gap-2.5">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                     {idx + 1}
@@ -160,7 +202,7 @@ export default function ZonaDetailPage() {
                 Recomendaciones de Seguridad Peatonal:
               </h4>
               <ul className="text-[11px] text-amber-950 dark:text-amber-200 space-y-0.5 pl-4 list-disc">
-                {zona.zon_recomendaciones.map((rec, i) => (
+                {(zona.zon_recomendaciones || []).map((rec, i) => (
                   <li key={i}>{rec}</li>
                 ))}
               </ul>

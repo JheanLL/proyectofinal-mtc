@@ -30,13 +30,14 @@ export default function ZonasPage() {
     setEstaciones(getEstaciones());
     setPreferencias(getPreferencias());
 
-    // Fetch from APIs
-    fetch('/api/zonas')
+    // Fetch from APIs with cache busting
+    const t = Date.now();
+    fetch(`/api/zonas?t=${t}`)
       .then(res => res.json())
       .then(data => { if (data.data) setZonas(data.data); })
       .catch(() => {});
 
-    fetch('/api/estaciones')
+    fetch(`/api/estaciones?t=${t}`)
       .then(res => res.json())
       .then(data => { if (data.data) setEstaciones(data.data); })
       .catch(() => {});
@@ -45,7 +46,7 @@ export default function ZonasPage() {
   const refreshZonas = async () => {
     setIsRefreshing(true);
     try {
-      const res = await fetch(`/api/zonas?refresh=true&t=${Date.now()}`);
+      const res = await fetch(`/api/zonas?t=${Date.now()}`);
       const data = await res.json();
       if (data.success && data.data) {
         setZonas(data.data);
@@ -58,10 +59,11 @@ export default function ZonasPage() {
   };
 
   const filteredZonas = zonas.filter((zona) => {
+    const searchLower = searchTerm.toLowerCase();
     const matchesSearch = 
-      zona.zon_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      zona.zon_descripcion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      zona.zon_puntos_interes.some(p => p.toLowerCase().includes(searchTerm.toLowerCase()));
+      (zona.zon_nombre || '').toLowerCase().includes(searchLower) ||
+      (zona.zon_descripcion || '').toLowerCase().includes(searchLower) ||
+      (zona.zon_puntos_interes || []).some(p => (p || '').toLowerCase().includes(searchLower));
 
     const matchesEstacion = selectedEstacion === 'todos' || zona.zon_estacion_id === selectedEstacion;
     const matchesCategoria = selectedCategoria === 'todos' || zona.zon_categoria === selectedCategoria;
