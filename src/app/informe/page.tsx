@@ -47,17 +47,19 @@ function InformeContent() {
     setZonas(loadedZon);
     setHorarios(loadedHor);
 
-    // 1. Fetch recent itinerarios from Aiven MySQL
+    // 1. Fetch itinerarios oficiales directamente desde Aiven MySQL (SSOT)
     fetch('/api/itinerarios')
       .then(res => res.json())
       .then(json => {
         if (json.data && json.data.length > 0) {
-          setItinerarios(prev => {
-            const map = new Map<string, TblItinerarioConsulta>();
-            prev.forEach(i => map.set(i.iti_codigo.toLowerCase(), i));
-            (json.data as TblItinerarioConsulta[]).forEach(i => map.set(i.iti_codigo.toLowerCase(), i));
-            return Array.from(map.values());
-          });
+          const aivenList = json.data as TblItinerarioConsulta[];
+          setItinerarios(aivenList);
+          try {
+            localStorage.setItem('mtc_itinerarios', JSON.stringify(aivenList));
+          } catch {}
+          if (!searchParams.get('codigo')) {
+            setActiveItinerario(aivenList[0]);
+          }
         }
       })
       .catch(() => {});
