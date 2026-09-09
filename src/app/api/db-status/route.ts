@@ -19,6 +19,7 @@ export async function GET() {
       SELECT 'tbl_estacion' as tbl, count(*) as total FROM tbl_estacion
       UNION ALL SELECT 'tbl_zona_turistica', count(*) FROM tbl_zona_turistica
       UNION ALL SELECT 'tbl_horario_tren', count(*) FROM tbl_horario_tren
+      UNION ALL SELECT 'tbl_pronostico_clima', count(*) FROM tbl_pronostico_clima
       UNION ALL SELECT 'tbl_preferencia_turistica', count(*) FROM tbl_preferencia_turistica
       UNION ALL SELECT 'tbl_estado_integracion', count(*) FROM tbl_estado_integracion
       UNION ALL SELECT 'tbl_usuario_sistema', count(*) FROM tbl_usuario_sistema
