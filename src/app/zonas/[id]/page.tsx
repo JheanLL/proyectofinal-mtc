@@ -148,7 +148,7 @@ export default function ZonaDetailPage() {
           <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-slate-300">
             <span className="flex items-center gap-1">
               <Train className="w-3.5 h-3.5 text-red-400" />
-              Estación: <strong>{estacion.est_nombre}</strong>
+              Estación: <strong>{estacion.est_nombre.replace(/^Estación\s+/i, '')}</strong>
             </span>
             <span className="flex items-center gap-1">
               <Footprints className="w-3.5 h-3.5 text-emerald-400" />

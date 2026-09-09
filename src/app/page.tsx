@@ -291,7 +291,7 @@ export default function HomePage() {
                     {estacion && (
                       <div className="flex items-center gap-1 text-xs text-red-700 dark:text-red-400 font-semibold">
                         <Train className="w-3.5 h-3.5" />
-                        <span>Estación: {estacion.est_nombre}</span>
+                        <span>Estación: {estacion.est_nombre.replace(/^Estación\s+/i, '')}</span>
                       </div>
                     )}
                     <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">

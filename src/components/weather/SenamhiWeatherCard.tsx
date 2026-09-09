@@ -141,45 +141,45 @@ export default function SenamhiWeatherCard({ clima: initialClima, estacion, comp
       </div>
 
       {/* Main Weather Data */}
-      <div className="p-5 sm:p-7 space-y-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 bg-blue-50/60 dark:bg-slate-950/70 p-5 rounded-2xl border border-blue-100 dark:border-slate-800">
-          <div className="flex items-center gap-4">
-            <div className="p-3.5 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-blue-100 dark:border-slate-800 flex items-center justify-center shrink-0">
+      <div className="p-4 sm:p-6 space-y-4">
+        <div className="flex flex-col gap-4 bg-blue-50/60 dark:bg-slate-950/70 p-4 sm:p-5 rounded-2xl border border-blue-100 dark:border-slate-800">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-blue-100 dark:border-slate-800 flex items-center justify-center shrink-0">
               {getWeatherIcon(clima.cli_condicion_cielo)}
             </div>
-            <div>
-              <div className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            <div className="min-w-0 flex-1">
+              <div className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
                 {clima.cli_temp_actual_c}°C
               </div>
-              <div className="text-sm font-bold text-slate-800 dark:text-slate-100">
+              <div className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1 truncate">
                 {clima.cli_condicion_cielo}
               </div>
               {estacion && (
-                <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1">
-                  Estación {estacion.est_nombre} ({estacion.est_altitud_msnm} msnm)
+                <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-1" title={`${estacion.est_nombre} (${estacion.est_altitud_msnm} msnm)`}>
+                  {estacion.est_nombre.startsWith('Estación') ? estacion.est_nombre : `Estación ${estacion.est_nombre}`} ({estacion.est_altitud_msnm} msnm)
                 </div>
               )}
             </div>
           </div>
 
-          {/* Key Indicators: spacious cards */}
-          <div className="grid grid-cols-3 gap-3 text-center sm:min-w-[280px]">
-            <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-              <Thermometer className="w-4 h-4 text-red-500 mx-auto mb-1" />
-              <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 block">Mín / Máx</span>
-              <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 block">{clima.cli_temp_min_c}° / {clima.cli_temp_max_c}°</span>
+          {/* Key Indicators: responsive grid that fits 100% of container width without horizontal overflow */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center w-full">
+            <div className="bg-white dark:bg-slate-900 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs min-w-0">
+              <Thermometer className="w-4 h-4 text-red-500 mx-auto mb-1 shrink-0" />
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-300 block truncate">Mín / Máx</span>
+              <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white mt-0.5 block truncate">{clima.cli_temp_min_c}° / {clima.cli_temp_max_c}°</span>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-              <Droplets className="w-4 h-4 text-blue-500 mx-auto mb-1" />
-              <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 block">Lluvia</span>
-              <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 block">{clima.cli_prob_lluvia_pct}%</span>
+            <div className="bg-white dark:bg-slate-900 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs min-w-0">
+              <Droplets className="w-4 h-4 text-blue-500 mx-auto mb-1 shrink-0" />
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-300 block truncate">Lluvia</span>
+              <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white mt-0.5 block truncate">{clima.cli_prob_lluvia_pct}%</span>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
-              <Sun className="w-4 h-4 text-amber-500 mx-auto mb-1" />
-              <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 block">Índice UV</span>
-              <span className="text-sm font-black text-amber-600 dark:text-amber-300 mt-0.5 block">{clima.cli_indice_uv}</span>
+            <div className="bg-white dark:bg-slate-900 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs min-w-0">
+              <Sun className="w-4 h-4 text-amber-500 mx-auto mb-1 shrink-0" />
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-300 block truncate">Índice UV</span>
+              <span className="text-xs sm:text-sm font-black text-amber-600 dark:text-amber-300 mt-0.5 block truncate">{clima.cli_indice_uv}</span>
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function SenamhiWeatherCard({ clima: initialClima, estacion, comp
         </div>
 
         {/* Footer timestamp with high contrast */}
-        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-semibold flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
           <span>{clima.cli_fuente_senamhi}</span>
           <span>Actualizado: {clima.cli_fecha_actualizacion}</span>
         </div>
