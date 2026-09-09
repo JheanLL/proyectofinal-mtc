@@ -143,7 +143,8 @@ export async function initAivenDatabase() {
         zon_es_destacado BOOLEAN DEFAULT FALSE,
         zon_activo BOOLEAN DEFAULT TRUE,
         zon_creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        INDEX idx_estacion (zon_estacion_id)
+        INDEX idx_estacion (zon_estacion_id),
+        CONSTRAINT fk_zona_estacion FOREIGN KEY (zon_estacion_id) REFERENCES tbl_estacion(est_id) ON DELETE RESTRICT ON UPDATE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
@@ -165,7 +166,9 @@ export async function initAivenDatabase() {
         hor_incluye_refrigerio BOOLEAN DEFAULT FALSE,
         hor_activo BOOLEAN DEFAULT TRUE,
         hor_creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        INDEX idx_origen_destino (hor_estacion_origen_id, hor_estacion_destino_id)
+        INDEX idx_origen_destino (hor_estacion_origen_id, hor_estacion_destino_id),
+        CONSTRAINT fk_horario_estacion_origen FOREIGN KEY (hor_estacion_origen_id) REFERENCES tbl_estacion(est_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+        CONSTRAINT fk_horario_estacion_destino FOREIGN KEY (hor_estacion_destino_id) REFERENCES tbl_estacion(est_id) ON DELETE RESTRICT ON UPDATE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
@@ -187,7 +190,8 @@ export async function initAivenDatabase() {
         cli_recomendacion_ropa JSON NULL,
         cli_fuente_senamhi VARCHAR(100) NOT NULL DEFAULT 'SENAMHI / Open-Meteo',
         cli_fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        INDEX idx_estacion_fecha (cli_estacion_id, cli_fecha)
+        INDEX idx_estacion_fecha (cli_estacion_id, cli_fecha),
+        CONSTRAINT fk_clima_estacion FOREIGN KEY (cli_estacion_id) REFERENCES tbl_estacion(est_id) ON DELETE CASCADE ON UPDATE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
@@ -225,7 +229,12 @@ export async function initAivenDatabase() {
         iti_costo_entradas_pen DECIMAL(10, 2) NOT NULL DEFAULT 0,
         iti_costo_total_pen DECIMAL(10, 2) NOT NULL,
         iti_costo_total_usd DECIMAL(10, 2) NOT NULL,
-        iti_notas TEXT NULL
+        iti_notas TEXT NULL,
+        CONSTRAINT fk_itinerario_origen FOREIGN KEY (iti_estacion_origen_id) REFERENCES tbl_estacion(est_id),
+        CONSTRAINT fk_itinerario_destino FOREIGN KEY (iti_estacion_destino_id) REFERENCES tbl_estacion(est_id),
+        CONSTRAINT fk_itinerario_zona FOREIGN KEY (iti_zona_turistica_id) REFERENCES tbl_zona_turistica(zon_id),
+        CONSTRAINT fk_itinerario_horario_ida FOREIGN KEY (iti_horario_ida_id) REFERENCES tbl_horario_tren(hor_id),
+        CONSTRAINT fk_itinerario_horario_retorno FOREIGN KEY (iti_horario_retorno_id) REFERENCES tbl_horario_tren(hor_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
@@ -271,7 +280,9 @@ export async function initAivenDatabase() {
         aud_registro_id VARCHAR(50) NULL,
         aud_detalles_json JSON NULL,
         aud_ip_origen VARCHAR(50) NULL,
-        aud_fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        aud_fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_aud_usuario (aud_usuario_id),
+        CONSTRAINT fk_auditoria_usuario FOREIGN KEY (aud_usuario_id) REFERENCES tbl_usuario_sistema(usu_id) ON DELETE SET NULL ON UPDATE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 

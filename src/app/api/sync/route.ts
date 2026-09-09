@@ -57,6 +57,10 @@ export async function POST(request: NextRequest) {
           int_latencia_ms = FLOOR(60 + (RAND() * 80))
     `);
 
+    // Sincronizar clima real en vivo de Open-Meteo hacia tbl_pronostico_clima en Aiven MySQL
+    const { syncAllStationsWeatherToDatabase } = await import('@/lib/weather');
+    const estacionesSincronizadas = await syncAllStationsWeatherToDatabase();
+
     await logAuditoria(
       usuarioId,
       usuarioEmail,
@@ -64,7 +68,8 @@ export async function POST(request: NextRequest) {
       'INTEGRACIONES',
       'ALL_APIS',
       { 
-        accion: 'Sincronización manual de APIs externas (SENAMHI, PeruRail, Travel Group)',
+        accion: 'Sincronización de APIs y pronósticos satelitales (Open-Meteo / SENAMHI)',
+        estacionesSincronizadas,
         operador: usuarioEmail,
         timestamp: new Date().toISOString()
       },

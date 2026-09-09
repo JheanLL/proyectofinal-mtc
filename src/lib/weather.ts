@@ -96,3 +96,60 @@ export async function fetchAllLiveWeathers(forceFresh: boolean = false): Promise
   const results = await Promise.all(promises);
   return Object.fromEntries(results);
 }
+
+export async function syncAllStationsWeatherToDatabase(): Promise<number> {
+  try {
+    const { execute } = await import('@/lib/db/mysql');
+    let synced = 0;
+    const today = new Date().toISOString().split('T')[0];
+
+    for (const est of INITIAL_ESTACIONES) {
+      const weather = await fetchLiveWeatherForStation(est.est_id, true);
+      if (weather) {
+        await execute(
+          `INSERT INTO tbl_pronostico_clima (
+            cli_id, cli_estacion_id, cli_fecha, cli_temp_min_c, cli_temp_max_c,
+            cli_temp_actual_c, cli_condicion_cielo, cli_prob_lluvia_pct, cli_humedad_pct,
+            cli_viento_kmh, cli_indice_uv, cli_alerta_meteorologica, cli_recomendacion_ropa,
+            cli_fuente_senamhi, cli_fecha_actualizacion
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+          ON DUPLICATE KEY UPDATE
+            cli_temp_min_c = VALUES(cli_temp_min_c),
+            cli_temp_max_c = VALUES(cli_temp_max_c),
+            cli_temp_actual_c = VALUES(cli_temp_actual_c),
+            cli_condicion_cielo = VALUES(cli_condicion_cielo),
+            cli_prob_lluvia_pct = VALUES(cli_prob_lluvia_pct),
+            cli_humedad_pct = VALUES(cli_humedad_pct),
+            cli_viento_kmh = VALUES(cli_viento_kmh),
+            cli_indice_uv = VALUES(cli_indice_uv),
+            cli_alerta_meteorologica = VALUES(cli_alerta_meteorologica),
+            cli_recomendacion_ropa = VALUES(cli_recomendacion_ropa),
+            cli_fuente_senamhi = VALUES(cli_fuente_senamhi),
+            cli_fecha_actualizacion = NOW()`,
+          [
+            `cli_${est.est_id}`,
+            est.est_id,
+            today,
+            weather.cli_temp_min_c,
+            weather.cli_temp_max_c,
+            weather.cli_temp_actual_c,
+            weather.cli_condicion_cielo,
+            weather.cli_prob_lluvia_pct,
+            weather.cli_humedad_pct,
+            weather.cli_viento_kmh,
+            weather.cli_indice_uv,
+            JSON.stringify(weather.cli_alerta_meteorologica),
+            JSON.stringify(weather.cli_recomendacion_ropa),
+            weather.cli_fuente_senamhi || `SENAMHI EMA ${est.est_ciudad}`
+          ]
+        );
+        synced++;
+      }
+    }
+    return synced;
+  } catch (error) {
+    console.error('[Weather Sync Error]', error);
+    return 0;
+  }
+}
+

@@ -49,7 +49,6 @@ USE bd_zonas_turisticas_mtc;
 -- Desactivar temporalmente revisión de claves foráneas para recreación limpia
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS tbl_filtro_exclusion;
 DROP TABLE IF EXISTS tbl_auditoria;
 DROP TABLE IF EXISTS tbl_itinerario_consulta;
 DROP TABLE IF EXISTS tbl_pronostico_clima;
@@ -293,6 +292,63 @@ CREATE TABLE tbl_estado_integracion (
   COMMENT='Estado de sincronización y latencia de servicios SENAMHI, PeruRail y Travel Group';
 
 -- ==============================================================================
+-- INSERCIÓN DE DATOS SEMILLA (SEEDS OFICIALES Y BANCO DE SIMULACIÓN MTC)
+-- ==============================================================================
+-- Se asegura la integridad referencial habilitando orden estricto de padres a hijos.
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 1. Inserción de las 3 Cuentas Administrativas Oficiales (RBAC)
+INSERT INTO tbl_usuario_sistema (usu_id, usu_email, usu_password_hash, usu_rol, usu_nombre, usu_activo)
+VALUES 
+  (1, 'admin@mtc.gob.pe', '$2b$10$.6Wq7zotY1GOnWyh9bt6COrSUGJoufV1LXJ6Vrbt0hfV2nv0qYDZ2', 'ADMIN', 'Administrador General MTC', TRUE),
+  (2, 'operaciones@travelgroup.pe', '$2b$10$QxXVAJBC5h0LURn.lkxY8OeNw86UoJfdAbvy9sXJ/UUg2j2Schsse', 'TRAVEL_GROUP', 'Gestor Travel Group Perú', TRUE),
+  (3, 'logistica@perurail.com', '$2b$10$jcbgDL3H6Yw96y04RSoeHOKYw2i9vsxTC58yIps4G4rUuXgVFxGA2', 'PERURAIL', 'Coordinador PeruRail', TRUE)
+ON DUPLICATE KEY UPDATE usu_nombre = VALUES(usu_nombre);
+
+-- 2. Inserción de Estaciones Ferroviarias
+-- ------------------------------------------------------------------------------
+-- 2. SEED OFICIAL: CATÁLOGO MAESTRO DE ESTACIONES FERROVIARIAS (PeruRail / MTC)
+-- Nota Arquitectónica: Este seed garantiza la Integridad Referencial (Foreign Keys)
+-- en MySQL (tbl_zona_turistica y tbl_horario_tren). En tiempo de ejecución, el cliente
+-- web consume esta infraestructura dinámicamente mediante el endpoint REST GET /api/estaciones.
+-- ------------------------------------------------------------------------------
+INSERT INTO tbl_estacion (est_id, est_codigo, est_nombre, est_ciudad, est_departamento, est_altitud_msnm, est_latitud, est_longitud, est_descripcion, est_servicios, est_imagen_url)
+VALUES
+('est_01', 'EST-CUS-SP', 'Estación San Pedro (Cusco)', 'Cusco', 'Cusco', 3399, -13.52040000, -71.98280000, 'Ubicada en el corazón histórico de Cusco, frente al célebre Mercado Central y a escasas cuadras de la Plaza de Armas.', '["Boletería PeruRail", "Sala de espera VIP", "Información turística iPerú", "Custodia de equipaje", "Cafetería andina", "Wifi gratuito"]', 'https://images.unsplash.com/photo-1589553416260-f586c8f1514f?auto=format&fit=crop&w=1200&q=80'),
+('est_02', 'EST-CUS-POR', 'Estación Poroy (Cusco)', 'Poroy', 'Cusco', 3499, -13.49120000, -72.04650000, 'Punto de partida ideal en las afueras de la ciudad imperial de Cusco hacia el Valle Sagrado y Machu Picchu.', '["Boletería", "Estacionamiento vigilado", "Servicio de maleteros", "Cafetería", "Servicios higiénicos accesibles"]', 'https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=1200&q=80'),
+('est_03', 'EST-VAL-OLL', 'Estación Ollantaytambo', 'Ollantaytambo', 'Cusco', 2792, -13.25890000, -72.26380000, 'Principal nodo ferroviario del Valle Sagrado con conexión directa diaria hacia Machu Picchu.', '["Boletería automatizada", "Salas de embarque", "Restaurantes", "Módulo SENAMHI", "Artesanías locales", "Parqueo de bicicletas"]', 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?auto=format&fit=crop&w=1200&q=80'),
+('est_04', 'EST-MAC-AGU', 'Estación Machu Picchu Pueblo (Aguas Calientes)', 'Machu Picchu Pueblo', 'Cusco', 2040, -13.15490000, -72.52550000, 'Estación terminal a orillas del río Vilcanota, puerta de entrada peatonal y vehicular al Santuario Histórico de Machu Picchu.', '["Centro de atención al visitante", "Boletería", "Embarque preferencial", "Asistencia médica", "Oficina MTC / Dircetur"]', 'https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=1200&q=80'),
+('est_05', 'EST-VAL-URU', 'Estación Urubamba', 'Urubamba', 'Cusco', 2870, -13.30560000, -72.11580000, 'Estación rodeada de clima templado y valles fértiles, conectada con hoteles boutique y huertos orgánicos.', '["Boletería", "Salón de espera", "Jardín andino", "Información turística", "Café bar"]', 'https://images.unsplash.com/photo-1609137144813-7d9921338f24?auto=format&fit=crop&w=1200&q=80'),
+('est_06', 'EST-PUN-TIT', 'Estación Puno (Lago Titicaca)', 'Puno', 'Puno', 3827, -15.83640000, -70.02190000, 'Estación histórica a orillas del lago navegable más alto del mundo, conectando el Altiplano con Cusco.', '["Boletería Titicaca Train", "Sala de embarque folclórica", "Oxígeno de cortesía", "Custodia de equipaje"]', 'https://images.unsplash.com/photo-1534008897995-27a23e859048?auto=format&fit=crop&w=1200&q=80')
+ON DUPLICATE KEY UPDATE est_nombre = VALUES(est_nombre);
+
+
+-- 3. SEED EN VIVO: PRONÓSTICOS METEOROLÓGICOS OFICIALES (SENAMHI / Open-Meteo)
+-- Vinculado por Foreign Key con tbl_estacion(est_id)
+INSERT INTO tbl_pronostico_clima (
+  cli_id, cli_estacion_id, cli_fecha, cli_temp_min_c, cli_temp_max_c,
+  cli_temp_actual_c, cli_condicion_cielo, cli_prob_lluvia_pct, cli_humedad_pct,
+  cli_viento_kmh, cli_indice_uv, cli_alerta_meteorologica, cli_recomendacion_ropa,
+  cli_fuente_senamhi, cli_fecha_actualizacion
+) VALUES
+('cli_est_01', 'est_01', CURDATE(), 4.5, 18.5, 7.3, 'Nublado', 71, 85, 2.5, 7.4, '{"nivel":"Verde","mensaje":"Condiciones normales de sierra.","recomendacion":"Llevar abrigo ligero y gorro."}', '["Ropa ligera transpirable","Lentes con filtro UV"]', 'SENAMHI EMA Cusco San Pedro (Satelital)', NOW()),
+('cli_est_02', 'est_02', CURDATE(), 4.0, 18.0, 7.7, 'Nublado', 71, 84, 3.1, 8.0, '{"nivel":"Verde","mensaje":"Condiciones normales de sierra.","recomendacion":"Llevar abrigo ligero y gorro."}', '["Ropa ligera transpirable","Lentes con filtro UV"]', 'SENAMHI EMA Poroy (Satelital)', NOW()),
+('cli_est_03', 'est_03', CURDATE(), 8.0, 22.0, 11.2, 'Nublado', 100, 78, 4.2, 9.3, '{"nivel":"Amarillo","mensaje":"Probabilidad alta de precipitaciones.","recomendacion":"Poncho impermeable y calzado con tracción."}', '["Poncho impermeable para lluvia","Calzado antideslizante"]', 'SENAMHI EMA Ollantaytambo (Satelital)', NOW()),
+('cli_est_04', 'est_04', CURDATE(), 12.0, 24.0, 15.1, 'Lluvia Ligera', 100, 90, 2.0, 9.3, '{"nivel":"Amarillo","mensaje":"Probabilidad alta de precipitaciones en ceja de selva.","recomendacion":"Poncho impermeable y repelente de insectos."}', '["Poncho impermeable para lluvia","Repelente ecológico"]', 'SENAMHI EMA Machu Picchu Pueblo (Satelital)', NOW()),
+('cli_est_05', 'est_05', CURDATE(), 7.5, 21.5, 11.0, 'Nublado', 100, 75, 3.5, 8.9, '{"nivel":"Amarillo","mensaje":"Probabilidad moderada de lluvias.","recomendacion":"Llevar paraguas y cortaviento."}', '["Cortaviento","Lentes de sol"]', 'SENAMHI EMA Urubamba (Satelital)', NOW()),
+('cli_est_06', 'est_06', CURDATE(), 1.0, 15.0, 7.2, 'Nublado', 64, 65, 5.5, 9.5, '{"nivel":"Verde","mensaje":"Frío altiplánico y alta radiación solar.","recomendacion":"Protector solar FPS 50+ y casaca térmica."}', '["Casaca térmica","Protector solar FPS 50+"]', 'SENAMHI EMA Puno Titicaca (Satelital)', NOW())
+ON DUPLICATE KEY UPDATE cli_temp_actual_c = VALUES(cli_temp_actual_c), cli_fecha_actualizacion = NOW();
+
+-- 3. Inserción de Preferencias Turísticas
+INSERT INTO tbl_preferencia_turistica (pre_id, pre_codigo, pre_nombre, pre_icono, pre_descripcion, pre_color_badge, pre_activo)
+VALUES
+('pre_01', 'naturaleza', 'Naturaleza & Paisajes', 'Trees', 'Caminatas ecológicas, cataratas y orquídeas.', 'bg-emerald-100 text-emerald-800', TRUE),
+('pre_02', 'historia', 'Historia & Cultura', 'Landmark', 'Sitios arqueológicos, templos incas y museos.', 'bg-amber-100 text-amber-800', TRUE),
+('pre_03', 'gastronomia', 'Gastronomía Local', 'Utensils', 'Rutas culinarias, mercados tradicionales y café de altura.', 'bg-orange-100 text-orange-800', TRUE),
+('pre_04', 'aventura', 'Aventura & Trekking', 'Compass', 'Senderismo de montaña y miradores elevados.', 'bg-red-100 text-red-800', TRUE)
+ON DUPLICATE KEY UPDATE pre_nombre = VALUES(pre_nombre);
+
+-- ==============================================================================
 -- 4. SEED SIMULADO TRAVEL GROUP PERÚ: 12 ZONAS TURÍSTICAS PEATONALES
 INSERT INTO tbl_zona_turistica (zon_id, zon_estacion_id, zon_nombre, zon_categoria, zon_descripcion, zon_resumen_corto, zon_distancia_metros, zon_tiempo_caminata_min, zon_tiempo_sugerido_visita_min, zon_dificultad, zon_desnivel_metros, zon_puntos_interes, zon_recomendaciones, zon_latitud, zon_longitud, zon_imagen_url, zon_precio_entrada_pen, zon_horario_atencion, zon_es_destacado, zon_activo)
 VALUES
@@ -305,7 +361,7 @@ VALUES
 ('zon_08', 'est_01', 'Mercado Central de San Pedro', 'gastronomia', 'Frente a la misma estación, diseñado por Gustave Eiffel en 1925. Encontrarás secciones de jugos naturales, panes tradicionales de Oropesa, quesos andinos, hierbas medicinales y comida típica.', 'Epicentro gastronómico y cultural más vibrante y colorido del Cusco.', 120, 2, 60, 'Fácil', 0, '["Sección de jugos exóticos y frutas andinas","Pasillo de panes chuta y queso paria","Zona de artesanías y amuletos tradicionales (Pachamama)"]', '["Probar el caldo de gallina o lechón cusqueño","Llevar efectivo para compras menores","Cuidar pertenencias personales en horas punta"]', -13.52120000, -71.98220000, 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80', 0.00, '06:00 - 18:30 (Lunes a Domingo)', 1, 1),
 ('zon_09', 'est_01', 'Plaza de Armas, Basílica Catedral y Templo de la Compañía', 'historia', 'Caminando por la histórica calle Santa Clara y Marqués se desemboca en la imponente Plaza Mayor del Cusco, flanqueada por la Catedral, el templo de la Compañía de Jesús y portales coloniales.', 'Corazón monumental del Imperio Inca y la época virreinal del Perú.', 750, 10, 90, 'Fácil', 15, '["Arco de Santa Clara","Basílica Catedral del Cusco y lienzos de la Escuela Cusqueña","Templo de la Compañía de Jesús","Pileta central con la estatua del Inca Pachacútec"]', '["Hermosa iluminación nocturna a partir de las 18:00","Paseo 100% peatonal por el eje procesional"]', -13.51680000, -71.97880000, 'https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=1200&q=80', 40.00, '10:00 - 18:00 (Catedral)', 1, 1),
 ('zon_10', 'est_01', 'Calle Hatun Rumiyoc & Piedra de los Doce Ángulos', 'arqueologia', 'Continuando desde la Plaza de Armas por el callejón Hatun Rumiyoc, se encuentra este icónico muro inca que formó parte del palacio del inca Inca Roca, hoy Palacio Arzobispal.', 'Obra maestra de la cantería inca tallada con precisión milimétrica.', 1100, 14, 30, 'Fácil', 20, '["Piedra de los 12 Ángulos perfectamente encajada","Muro megalítico del Palacio de Inca Roca","Paso hacia el tradicional barrio de San Blas"]', '["No tocar la superficie lítica para preservar el patrimonio","Visita libre en cualquier horario del día"]', -13.51590000, -71.97630000, 'https://images.unsplash.com/photo-1589553416260-f586c8f1514f?auto=format&fit=crop&w=1200&q=80', 0.00, 'Abierto 24 horas', 0, 1),
-('zon_11', 'est_02', 'Mirador Paisajístico del Valle de Poroy & Bosque Nativo', 'fotografia', 'Sendero campestre que asciende suavemente desde la estación hasta un mirador natural rodeado de eucaliptos y quenuales, ideal para disfrutar del aire puro antes de abordar el tren.', 'Vista panorámica de las colinas andinas y los campos de cultivo de maíz.', 600, 9, 40, 'Fácil', 30, '["Mirador del ferrocarril sur-oriente","Bosque de queñuales y flora altoandina","Puntos de descanso con bancas rústicas"]', '["Llevar abrigo ligero debido al viento matutino","Caminar con tiempo holgado antes del chequeo de boletos"]', -13.49350000, -72.04820000, 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80', 0.00, 'Abierto en horario diurno', 0, 1),
+('zon_11', 'est_02', 'Mirador Paisajístico del Valle de Poroy & Bosque Nativo', 'fotografia', 'Sendero campestre que asciende suavemente desde la estación hasta un mirador natural rodeado de eucaliptos y quenuales, ideal para disfrutar del aire puro antes de abordar el tren.', 'Vista panorámica de las colinas andinas y los campos de cultivo de maíz.', 600, 9, 40, 'Fácil', 30, '["Mirador del ferrocarril sur-oriente","Bosque de queñuales y flora altoandina","Puntos de descanso con bancas rústicas"]', '["Llevar abrigo ligero debido al viento matutino","Caminar con tiempo holgado antes del chequeo de boletos"]', -13.49350000, -72.04820000, 'https://images.unsplash.com/photo-1509299349698-dd22323b5963?auto=format&fit=crop&w=1200&q=80', 0.00, 'Abierto en horario diurno', 0, 1),
 ('zon_12', 'est_05', 'Sendero Ribereño del Río Vilcanota & Taller Cerámico Seminario', 'cultura', 'Tranquila caminata bajo árboles nativos que conecta la estación de tren con la plaza principal de Urubamba y el afamado taller de Pablo Seminario, referente del arte cerámico contemporáneo del Perú.', 'Paseo sombreado junto al río y visita a la prestigiosa cerámica de estilo precolombino.', 750, 10, 60, 'Fácil', 10, '["Paseo peatonal ribereño del Vilcanota","Exposición y hornos del Taller Seminario","Plaza de Armas y Templo San Pedro de Urubamba"]', '["El taller ofrece demostraciones en vivo gratuitas","Clima cálido durante todo el año"]', -13.30320000, -72.11900000, 'https://images.unsplash.com/photo-1609137144813-7d9921338f24?auto=format&fit=crop&w=1200&q=80', 0.00, '08:00 - 18:00 (Lunes a Sábado)', 0, 1),
 ('zon_13', 'est_06', 'Muelle Turístico del Lago Titicaca & Malecón Ecoturístico', 'naturaleza', 'Saliendo de la estación ferroviaria de Puno, a tan solo 4 minutos a pie se extiende el muelle turístico donde zarpan las lanchas hacia las islas flotantes de los Uros, con feria de artesanías y miradores lacustres.', 'Malecón peatonal con vista panorámica a la bahía del lago navegable más alto del mundo.', 350, 5, 75, 'Fácil', 5, '["Faro monumental de la bahía de Puno","Embarcadero tradicional de totora","Artesanías en lana de alpaca y totora trenzada"]', '["Llevar cortaviento y abrigo térmico por el frío altiplánico","Excelente punto para fotografiar aves acuáticas como el zambullidor del Titicaca"]', -15.83400000, -70.01650000, 'https://images.unsplash.com/photo-1534008897995-27a23e859048?auto=format&fit=crop&w=1200&q=80', 0.00, '06:00 - 19:00 (Lunes a Domingo)', 1, 1)
 ON DUPLICATE KEY UPDATE zon_nombre = VALUES(zon_nombre);
@@ -342,59 +398,6 @@ VALUES
 ('hor_27', 'URU-42', 'est_05', 'est_02', 'Vistadome', '18:00', '19:20', 80, 105.00, 45.00, '["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"]', 36, 1, 1)
 ON DUPLICATE KEY UPDATE hor_codigo_tren = VALUES(hor_codigo_tren);
 
-
--- 10. TABLA: tbl_filtro_exclusion (Filtros de Exclusión y Bajas para Serverless)
--- ==============================================================================
-CREATE TABLE tbl_filtro_exclusion (
-  fil_id INT AUTO_INCREMENT PRIMARY KEY,
-  fil_modulo ENUM('ZONAS', 'HORARIOS') NOT NULL,
-  fil_registro_id VARCHAR(50) NOT NULL,
-  fil_motivo VARCHAR(255) NOT NULL DEFAULT 'Exclusión por administración',
-  fil_usuario_email VARCHAR(150) NULL,
-  fil_activo BOOLEAN DEFAULT TRUE,
-  fil_fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_fil_modulo_registro (fil_modulo, fil_registro_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  COMMENT='Tabla de filtros y exclusiones para registros eliminados u ocultados en servidor';
-
--- ==============================================================================
--- INSERCIÓN DE DATOS SEMILLA (SEEDS)
--- ==============================================================================
-
--- 1. Inserción de las 3 Cuentas Administrativas Oficiales (RBAC)
-INSERT INTO tbl_usuario_sistema (usu_id, usu_email, usu_password_hash, usu_rol, usu_nombre, usu_activo)
-VALUES 
-  (1, 'admin@mtc.gob.pe', '$2b$10$.6Wq7zotY1GOnWyh9bt6COrSUGJoufV1LXJ6Vrbt0hfV2nv0qYDZ2', 'ADMIN', 'Administrador General MTC', TRUE),
-  (2, 'operaciones@travelgroup.pe', '$2b$10$QxXVAJBC5h0LURn.lkxY8OeNw86UoJfdAbvy9sXJ/UUg2j2Schsse', 'TRAVEL_GROUP', 'Gestor Travel Group Perú', TRUE),
-  (3, 'logistica@perurail.com', '$2b$10$jcbgDL3H6Yw96y04RSoeHOKYw2i9vsxTC58yIps4G4rUuXgVFxGA2', 'PERURAIL', 'Coordinador PeruRail', TRUE)
-ON DUPLICATE KEY UPDATE usu_nombre = VALUES(usu_nombre);
-
--- 2. Inserción de Estaciones Ferroviarias
--- ------------------------------------------------------------------------------
--- 2. SEED OFICIAL: CATÁLOGO MAESTRO DE ESTACIONES FERROVIARIAS (PeruRail / MTC)
--- Nota Arquitectónica: Este seed garantiza la Integridad Referencial (Foreign Keys)
--- en MySQL (tbl_zona_turistica y tbl_horario_tren). En tiempo de ejecución, el cliente
--- web consume esta infraestructura dinámicamente mediante el endpoint REST GET /api/estaciones.
--- ------------------------------------------------------------------------------
-INSERT INTO tbl_estacion (est_id, est_codigo, est_nombre, est_ciudad, est_departamento, est_altitud_msnm, est_latitud, est_longitud, est_descripcion, est_servicios, est_imagen_url)
-VALUES
-('est_01', 'EST-CUS-SP', 'Estación San Pedro (Cusco)', 'Cusco', 'Cusco', 3399, -13.52040000, -71.98280000, 'Ubicada en el corazón histórico de Cusco, frente al célebre Mercado Central y a escasas cuadras de la Plaza de Armas.', '["Boletería PeruRail", "Sala de espera VIP", "Información turística iPerú", "Custodia de equipaje", "Cafetería andina", "Wifi gratuito"]', 'https://images.unsplash.com/photo-1589553416260-f586c8f1514f?auto=format&fit=crop&w=1200&q=80'),
-('est_02', 'EST-CUS-POR', 'Estación Poroy (Cusco)', 'Poroy', 'Cusco', 3499, -13.49120000, -72.04650000, 'Punto de partida ideal en las afueras de la ciudad imperial de Cusco hacia el Valle Sagrado y Machu Picchu.', '["Boletería", "Estacionamiento vigilado", "Servicio de maleteros", "Cafetería", "Servicios higiénicos accesibles"]', 'https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=1200&q=80'),
-('est_03', 'EST-VAL-OLL', 'Estación Ollantaytambo', 'Ollantaytambo', 'Cusco', 2792, -13.25890000, -72.26380000, 'Principal nodo ferroviario del Valle Sagrado con conexión directa diaria hacia Machu Picchu.', '["Boletería automatizada", "Salas de embarque", "Restaurantes", "Módulo SENAMHI", "Artesanías locales", "Parqueo de bicicletas"]', 'https://images.unsplash.com/photo-1587595431973-160d0d94add1?auto=format&fit=crop&w=1200&q=80'),
-('est_04', 'EST-MAC-AGU', 'Estación Machu Picchu Pueblo (Aguas Calientes)', 'Machu Picchu Pueblo', 'Cusco', 2040, -13.15490000, -72.52550000, 'Estación terminal a orillas del río Vilcanota, puerta de entrada peatonal y vehicular al Santuario Histórico de Machu Picchu.', '["Centro de atención al visitante", "Boletería", "Embarque preferencial", "Asistencia médica", "Oficina MTC / Dircetur"]', 'https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=1200&q=80'),
-('est_05', 'EST-VAL-URU', 'Estación Urubamba', 'Urubamba', 'Cusco', 2870, -13.30560000, -72.11580000, 'Estación rodeada de clima templado y valles fértiles, conectada con hoteles boutique y huertos orgánicos.', '["Boletería", "Salón de espera", "Jardín andino", "Información turística", "Café bar"]', 'https://images.unsplash.com/photo-1609137144813-7d9921338f24?auto=format&fit=crop&w=1200&q=80'),
-('est_06', 'EST-PUN-TIT', 'Estación Puno (Lago Titicaca)', 'Puno', 'Puno', 3827, -15.83640000, -70.02190000, 'Estación histórica a orillas del lago navegable más alto del mundo, conectando el Altiplano con Cusco.', '["Boletería Titicaca Train", "Sala de embarque folclórica", "Oxígeno de cortesía", "Custodia de equipaje"]', 'https://images.unsplash.com/photo-1534008897995-27a23e859048?auto=format&fit=crop&w=1200&q=80')
-ON DUPLICATE KEY UPDATE est_nombre = VALUES(est_nombre);
-
--- 3. Inserción de Preferencias Turísticas
-INSERT INTO tbl_preferencia_turistica (pre_id, pre_codigo, pre_nombre, pre_icono, pre_descripcion, pre_color_badge, pre_activo)
-VALUES
-('pre_01', 'naturaleza', 'Naturaleza & Paisajes', 'Trees', 'Caminatas ecológicas, cataratas y orquídeas.', 'bg-emerald-100 text-emerald-800', TRUE),
-('pre_02', 'historia', 'Historia & Cultura', 'Landmark', 'Sitios arqueológicos, templos incas y museos.', 'bg-amber-100 text-amber-800', TRUE),
-('pre_03', 'gastronomia', 'Gastronomía Local', 'Utensils', 'Rutas culinarias, mercados tradicionales y café de altura.', 'bg-orange-100 text-orange-800', TRUE),
-('pre_04', 'aventura', 'Aventura & Trekking', 'Compass', 'Senderismo de montaña y miradores elevados.', 'bg-red-100 text-red-800', TRUE)
-ON DUPLICATE KEY UPDATE pre_nombre = VALUES(pre_nombre);
-
 -- 4. Inserción de Estado de Integración de Servicios
 INSERT INTO tbl_estado_integracion (int_id, int_fuente, int_estado, int_ultima_sincronizacion, int_total_registros, int_latencia_ms, int_version_api, int_detalles)
 VALUES
@@ -402,6 +405,8 @@ VALUES
 (2, 'PeruRail', 'OPERATIVO', NOW(), 27, 180, 'v3.0-SOAP-JSON', 'Tarifarios y frecuencias ferroviarias sincronizadas.'),
 (3, 'Travel Group Perú', 'OPERATIVO', NOW(), 13, 210, 'v1.4-REST', 'Catálogo de circuitos peatonales georreferenciados.')
 ON DUPLICATE KEY UPDATE int_estado = VALUES(int_estado);
+
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ==============================================================================
 -- FIN DEL SCRIPT DDL MAESTRO

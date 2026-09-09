@@ -77,13 +77,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Ejecución de Restauración según el módulo
     if (auditRow.aud_modulo === 'ZONAS') {
-      // a) Desactivar exclusión del servidor
-      await execute(
-        "DELETE FROM tbl_filtro_exclusion WHERE fil_modulo = 'ZONAS' AND fil_registro_id = ?",
-        [registroId]
-      );
-
-      // b) Reactivar zona o reinsertar snapshot si existiera
+      // Reactivar zona o reinsertar snapshot si existiera
       if (snapshot) {
         await execute(
           `INSERT INTO tbl_zona_turistica (
@@ -123,13 +117,7 @@ export async function POST(request: NextRequest) {
         );
       }
     } else if (auditRow.aud_modulo === 'HORARIOS') {
-      // a) Desactivar exclusión del servidor
-      await execute(
-        "DELETE FROM tbl_filtro_exclusion WHERE fil_modulo = 'HORARIOS' AND fil_registro_id = ?",
-        [registroId]
-      );
-
-      // b) Reactivar horario o reinsertar snapshot si existiera
+      // Reactivar horario o reinsertar snapshot si existiera
       if (snapshot) {
         await execute(
           `INSERT INTO tbl_horario_tren (

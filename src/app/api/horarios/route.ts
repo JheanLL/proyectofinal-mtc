@@ -35,20 +35,7 @@ export async function GET(request: NextRequest) {
       : 'public, s-maxage=300, stale-while-revalidate=60',
   };
 
-  let excludedIds: string[] = [];
-
   try {
-    try {
-      const filterRows = await query<any>(
-        "SELECT fil_registro_id FROM tbl_filtro_exclusion WHERE fil_modulo = 'HORARIOS' AND fil_activo = TRUE"
-      );
-      if (filterRows && filterRows.length > 0) {
-        excludedIds = filterRows.map(r => r.fil_registro_id);
-      }
-    } catch (e) {
-      // Ignorar si tabla está en proceso de creación
-    }
-
     let sql = 'SELECT * FROM tbl_horario_tren WHERE hor_activo = TRUE';
     const params: any[] = [];
 
@@ -60,23 +47,17 @@ export async function GET(request: NextRequest) {
       params.push(origen);
     }
 
-    if (excludedIds.length > 0) {
-      sql += ` AND hor_id NOT IN (${excludedIds.map(() => '?').join(', ')})`;
-      params.push(...excludedIds);
-    }
-
     sql += ' ORDER BY hor_hora_salida ASC';
 
     const rows = await query<any>(sql, params);
     if (rows && rows.length > 0) {
-      const data = rows.map(parseHorarioRow).filter(h => !excludedIds.includes(h.hor_id));
+      const data = rows.map(parseHorarioRow);
       return NextResponse.json({
         success: true,
         fuente: 'PeruRail (Aiven MySQL SSOT)',
         data,
         total: data.length,
         cacheMinutes: 5,
-        exclusionesFiltradas: excludedIds.length,
         timestamp: new Date().toISOString(),
       }, { headers });
     }
@@ -90,17 +71,12 @@ export async function GET(request: NextRequest) {
   } else if (origen) {
     fallback = fallback.filter(h => h.hor_estacion_origen_id === origen);
   }
-  if (excludedIds.length > 0) {
-    fallback = fallback.filter(h => !excludedIds.includes(h.hor_id));
-  }
-
   return NextResponse.json({
     success: true,
     fuente: 'PeruRail (Local Fallback)',
     data: fallback,
     total: fallback.length,
     cacheMinutes: 5,
-    exclusionesFiltradas: excludedIds.length,
     timestamp: new Date().toISOString(),
   }, { headers });
 }
@@ -286,20 +262,8 @@ export async function DELETE(request: NextRequest) {
       console.warn('Advertencia obteniendo snapshot de horario:', snapErr);
     }
 
-    // 2. Registrar en tabla de filtros y exclusiones del servidor
-    try {
-      await execute(
-        `INSERT INTO tbl_filtro_exclusion (fil_modulo, fil_registro_id, fil_motivo, fil_usuario_email) 
-         VALUES ('HORARIOS', ?, 'Eliminado por logística PeruRail / MTC', ?)`,
-        [hor_id, usuarioEmail]
-      );
-    } catch (filterErr) {
-      console.warn('Advertencia al registrar en tbl_filtro_exclusion:', filterErr);
-    }
-
-    // 3. Desactivación lógica / borrado en tbl_horario_tren
+    // 2. Desactivación lógica (Soft-Delete) en tbl_horario_tren
     await execute('UPDATE tbl_horario_tren SET hor_activo = FALSE WHERE hor_id = ?', [hor_id]);
-    await execute('DELETE FROM tbl_horario_tren WHERE hor_id = ?', [hor_id]);
 
     await logAuditoria(
       usuarioId,

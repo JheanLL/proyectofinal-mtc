@@ -38,21 +38,7 @@ export async function GET(request: NextRequest) {
     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
   };
 
-  let excludedIds: string[] = [];
-
   try {
-    // Consultar tabla de filtros y exclusiones del servidor
-    try {
-      const exclusionRows = await query<any>(
-        "SELECT fil_registro_id FROM tbl_filtro_exclusion WHERE fil_modulo = 'ZONAS' AND fil_activo = TRUE"
-      );
-      if (exclusionRows && exclusionRows.length > 0) {
-        excludedIds = exclusionRows.map(r => r.fil_registro_id);
-      }
-    } catch (e) {
-      // Tabla puede no existir aún en entornos de prueba aislados
-    }
-
     let sql = 'SELECT * FROM tbl_zona_turistica WHERE zon_activo = TRUE';
     const params: any[] = [];
 
@@ -69,22 +55,16 @@ export async function GET(request: NextRequest) {
       params.push(categoria);
     }
 
-    if (excludedIds.length > 0) {
-      sql += ` AND zon_id NOT IN (${excludedIds.map(() => '?').join(', ')})`;
-      params.push(...excludedIds);
-    }
-
     sql += ' ORDER BY zon_distancia_metros ASC';
 
     const rows = await query<any>(sql, params);
     if (rows && rows.length > 0) {
-      const data = rows.map(parseZonaRow).filter(z => !excludedIds.includes(z.zon_id));
+      const data = rows.map(parseZonaRow);
       return NextResponse.json({
         success: true,
         fuente: 'Travel Group Perú (Aiven MySQL SSOT)',
         data,
         total: data.length,
-        exclusionesFiltradas: excludedIds.length,
         timestamp: new Date().toISOString(),
       }, { headers });
     }
@@ -97,15 +77,12 @@ export async function GET(request: NextRequest) {
   if (id) fallback = fallback.filter(z => z.zon_id === id);
   if (estacionId) fallback = fallback.filter(z => z.zon_estacion_id === estacionId);
   if (categoria) fallback = fallback.filter(z => z.zon_categoria === categoria);
-  if (excludedIds.length > 0) fallback = fallback.filter(z => !excludedIds.includes(z.zon_id));
-
   return NextResponse.json({
     success: true,
     fuente: 'Travel Group Perú (Local Fallback)',
     data: fallback,
     total: fallback.length,
     cacheMinutes: 5,
-    exclusionesFiltradas: excludedIds.length,
     timestamp: new Date().toISOString(),
   }, { headers });
 }
@@ -302,20 +279,8 @@ export async function DELETE(request: NextRequest) {
       console.warn('Advertencia obteniendo snapshot de zona:', snapErr);
     }
 
-    // 2. Registrar en tabla de filtros y exclusiones del servidor
-    try {
-      await execute(
-        `INSERT INTO tbl_filtro_exclusion (fil_modulo, fil_registro_id, fil_motivo, fil_usuario_email) 
-         VALUES ('ZONAS', ?, 'Eliminado por operador Travel Group / MTC', ?)`,
-        [zon_id, usuarioEmail]
-      );
-    } catch (filterErr) {
-      console.warn('Advertencia al registrar en tbl_filtro_exclusion:', filterErr);
-    }
-
-    // 3. Desactivación lógica / borrado en tbl_zona_turistica
+    // 2. Desactivación lógica (Soft-Delete) en tbl_zona_turistica
     await execute('UPDATE tbl_zona_turistica SET zon_activo = FALSE WHERE zon_id = ?', [zon_id]);
-    await execute('DELETE FROM tbl_zona_turistica WHERE zon_id = ?', [zon_id]);
 
     await logAuditoria(
       usuarioId,
