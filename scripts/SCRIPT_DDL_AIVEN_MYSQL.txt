@@ -1,4 +1,21 @@
 -- ==============================================================================
+-- PROYECTO FINAL - MINISTERIO DE TRANSPORTES Y COMUNICACIONES (MTC)
+-- PLATAFORMA WEB: GESTIÓN DE RUTAS TURÍSTICAS FERROVIARIAS Y PEATONALES
+-- ARCHIVO ADJUNTO / ANEXO TÉCNICO: SCRIPT DDL Y SEEDS PARA AIVEN MYSQL
+-- ==============================================================================
+-- INSTRUCCIONES RÁPIDAS PARA COPIAR Y EJECUTAR:
+-- 1. Abra este archivo de texto en cualquier editor (Bloc de notas, VS Code, etc.).
+-- 2. Seleccione todo el contenido (Ctrl + A) y cópielo (Ctrl + C).
+-- 3. Conéctese a su servidor MySQL (Aiven for MySQL Cloud, MySQL Workbench,
+--    DBeaver o phpMyAdmin).
+-- 4. Pegue el script en una nueva pestaña de consulta SQL y ejecútelo en bloque.
+-- 5. El script se encargará de crear la base de datos 'bd_zonas_turisticas_mtc',
+--    las 10 tablas relacionales con prefijos mandatorios 'tbl_', todos los índices
+--    compuestos, las claves foráneas con eliminación en cascada y todos los datos
+--    semilla (estaciones, zonas peatonales, horarios, tarifas y usuarios RBAC).
+-- ==============================================================================
+
+-- ==============================================================================
 -- NOTA DE ARQUITECTURA: SIMULACIÓN DE APIS (MOCK DATA PROVIDER EN AIVEN MYSQL)
 -- ==============================================================================
 -- En cumplimiento de los requerimientos del MTC y dado que PeruRail y Travel Group

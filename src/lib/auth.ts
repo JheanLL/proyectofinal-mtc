@@ -19,6 +19,11 @@ export async function hashPassword(plainText: string): Promise<string> {
 }
 
 export async function verifyPassword(plainText: string, hash: string): Promise<boolean> {
+  if (!plainText || !hash) {
+    return false;
+  }
+
+  // Verificación criptográfica estricta y exclusiva con Bcrypt ($2a$, $2b$, $2y$)
   if (hash.startsWith('$2a$') || hash.startsWith('$2b$') || hash.startsWith('$2y$')) {
     try {
       return await bcrypt.compare(plainText, hash);
@@ -27,13 +32,7 @@ export async function verifyPassword(plainText: string, hash: string): Promise<b
     }
   }
 
-  if (hash.startsWith('scrypt:')) {
-    if (plainText === 'admin123' && hash.includes('admin123')) return true;
-    if (plainText === 'travel123' && hash.includes('travel123')) return true;
-    if (plainText === 'perurail123' && hash.includes('perurail123')) return true;
-  }
-
-  return plainText === hash;
+  return false;
 }
 
 export async function signJwtToken(user: SessionUser): Promise<string> {

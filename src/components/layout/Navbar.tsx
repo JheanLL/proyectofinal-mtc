@@ -13,7 +13,6 @@ import {
   Menu, 
   X, 
   Sparkles, 
-  Radio, 
   ArrowRight,
   Lock,
   LogOut,
@@ -69,14 +68,7 @@ export default function Navbar() {
     <>
       <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-2xs transition-colors duration-200">
         {/* Top Status & Role Bar */}
-        <div className="bg-slate-900 dark:bg-slate-950 text-white text-[11px] py-1.5 px-4 sm:px-8 flex items-center justify-between border-b border-slate-800 gap-2">
-          <div className="flex items-center gap-2 truncate">
-            <span className="flex items-center gap-1 text-emerald-400 font-semibold truncate">
-              <Radio className="w-3 h-3 animate-pulse shrink-0" />
-              <span className="hidden sm:inline">APIs Conectadas:</span> SENAMHI • PeruRail • Travel Group
-            </span>
-          </div>
-
+        <div className="bg-slate-900 dark:bg-slate-950 text-white text-[11px] py-1.5 px-4 sm:px-8 flex items-center justify-end border-b border-slate-800 gap-2">
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             {/* 1. Botón de Switch de Tema a la IZQUIERDA de todo, al costado de Usuario (Turista) */}
             <ThemeToggle className="h-7 w-7" />

@@ -62,6 +62,7 @@ function PlanificadorContent() {
 
   // Final Report State
   const [generatedItinerarioCodigo, setGeneratedItinerarioCodigo] = useState<string>('');
+  const [generatedItinerarioFechaEmision, setGeneratedItinerarioFechaEmision] = useState<string>('');
   const [trainMapMode, setTrainMapMode] = useState<'ida' | 'retorno'>('ida');
 
   // Robust instant scroll to top on step transition to prevent jumping down to footer
@@ -250,6 +251,7 @@ function PlanificadorContent() {
       iti_costo_entradas_pen: selectedZona.zon_precio_entrada_pen,
       iti_costo_total_pen: selectedHorarioIda.hor_tarifa_regular_pen + selectedHorarioRetorno.hor_tarifa_regular_pen + selectedZona.zon_precio_entrada_pen,
       iti_costo_total_usd: selectedHorarioIda.hor_tarifa_turista_usd + selectedHorarioRetorno.hor_tarifa_turista_usd,
+      iti_notas: JSON.stringify({ fechaViaje }),
     };
 
     const saved = saveItinerario(payload);
@@ -263,6 +265,7 @@ function PlanificadorContent() {
     } catch {}
 
     setGeneratedItinerarioCodigo(saved.iti_codigo);
+    setGeneratedItinerarioFechaEmision(saved.iti_fecha_creacion);
     goToStep(4);
 
     confetti({
@@ -840,6 +843,7 @@ function PlanificadorContent() {
           <ConsolidatedTouristReport
             codigoItinerario={generatedItinerarioCodigo || 'TRAIN-8924'}
             fechaViaje={fechaViaje}
+            fechaEmision={generatedItinerarioFechaEmision || new Date().toISOString()}
             usuarioNombre={usuarioNombre}
             usuarioEmail={usuarioEmail}
             estacionOrigen={estacionOrigen}

@@ -8,6 +8,12 @@ export async function POST(request: NextRequest) {
     mensaje: 'Sesión finalizada correctamente.'
   });
 
-  response.cookies.delete('auth_token');
+  response.cookies.set('auth_token', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 0,
+    path: '/',
+  });
   return response;
 }

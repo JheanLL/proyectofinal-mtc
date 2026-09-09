@@ -34,13 +34,15 @@ import {
   formatCurrencyUSD, 
   formatDistance, 
   formatDurationMin, 
-  formatDateSpanish 
+  formatDateSpanish,
+  formatDateShortSpanish 
 } from '@/lib/utils';
 import confetti from 'canvas-confetti';
 
 interface ConsolidatedTouristReportProps {
   codigoItinerario?: string;
   fechaViaje?: string;
+  fechaEmision?: string;
   usuarioNombre?: string;
   usuarioEmail?: string;
   estacionOrigen: TblEstacion;
@@ -55,6 +57,7 @@ interface ConsolidatedTouristReportProps {
 export default function ConsolidatedTouristReport({
   codigoItinerario = 'TRAIN-8924',
   fechaViaje = new Date().toISOString().split('T')[0],
+  fechaEmision,
   usuarioNombre = 'Turista Nacional / Internacional',
   usuarioEmail,
   estacionOrigen,
@@ -422,7 +425,7 @@ ${shareUrl}`;
                 {codigoItinerario}
               </div>
               <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-                Emitido: {new Date().toLocaleDateString('es-PE')}
+                Emitido: {formatDateShortSpanish(fechaEmision || new Date())}
               </div>
             </div>
           </div>

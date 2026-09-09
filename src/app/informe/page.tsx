@@ -21,6 +21,7 @@ import {
   FileText, 
   Search, 
   Sparkles, 
+  ArrowRight,
 } from 'lucide-react';
 import ConsolidatedTouristReport from '@/components/reports/ConsolidatedTouristReport';
 
@@ -213,38 +214,59 @@ function InformeContent() {
       </div>
 
       {/* Main Report Display */}
-      {zonaTuristica && horarioIda && horarioRetorno && climaSenamhi ? (
-        <ConsolidatedTouristReport
-          codigoItinerario={activeItinerario?.iti_codigo || 'TRAIN-8924'}
-          fechaViaje={activeItinerario?.iti_fecha_creacion?.split('T')[0] || new Date().toISOString().split('T')[0]}
-          usuarioNombre={activeItinerario?.iti_usuario_nombre || 'Turista Nacional / Internacional'}
-          usuarioEmail={activeItinerario?.iti_usuario_email}
-          estacionOrigen={estacionOrigen}
-          estacionDestino={estacionDestino}
-          zonaTuristica={zonaTuristica}
-          horarioIda={horarioIda}
-          horarioRetorno={horarioRetorno}
-          climaSenamhi={climaSenamhi}
-          preferenciasSeleccionadas={activeItinerario?.iti_preferencias_seleccionadas || ['naturaleza']}
-        />
-      ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
-          <div className="w-10 h-10 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 rounded-full flex items-center justify-center mx-auto">
-            <FileText className="w-5 h-5" />
+      {(() => {
+        if (!zonaTuristica || !horarioIda || !horarioRetorno || !climaSenamhi) return (
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 text-center border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+            <div className="w-10 h-10 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 rounded-full flex items-center justify-center mx-auto">
+              <FileText className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">No hay informes seleccionados</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+              Utiliza el planificador asistido para configurar tus preferencias y generar tu primer informe consolidado en PDF.
+            </p>
+            <Link
+              href="/planificador"
+              className="inline-flex items-center gap-1.5 bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md"
+            >
+              <span>Ir al Planificador</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">No hay informes seleccionados</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-            Utiliza el planificador asistido para configurar tus preferencias y generar tu primer informe consolidado en PDF.
-          </p>
-          <Link
-            href="/planificador"
-            className="inline-flex items-center gap-1.5 bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Ir al Planificador</span>
-          </Link>
-        </div>
-      )}
+        );
+
+        // Resolver fecha de viaje real y fecha de emisión inmutable
+        const resolvedFechaEmision = activeItinerario?.iti_fecha_creacion;
+        let resolvedFechaViaje = activeItinerario?.iti_fecha_creacion?.split('T')[0] || new Date().toISOString().split('T')[0];
+        if (activeItinerario?.iti_notas) {
+          try {
+            const parsedNotes = JSON.parse(activeItinerario.iti_notas);
+            if (parsedNotes.fechaViaje) {
+              resolvedFechaViaje = parsedNotes.fechaViaje;
+            }
+          } catch {
+            if (/^\d{4}-\d{2}-\d{2}$/.test(activeItinerario.iti_notas.trim())) {
+              resolvedFechaViaje = activeItinerario.iti_notas.trim();
+            }
+          }
+        }
+
+        return (
+          <ConsolidatedTouristReport
+            codigoItinerario={activeItinerario?.iti_codigo || 'TRAIN-8924'}
+            fechaEmision={resolvedFechaEmision}
+            fechaViaje={resolvedFechaViaje}
+            usuarioNombre={activeItinerario?.iti_usuario_nombre || 'Turista Nacional / Internacional'}
+            usuarioEmail={activeItinerario?.iti_usuario_email}
+            estacionOrigen={estacionOrigen}
+            estacionDestino={estacionDestino}
+            zonaTuristica={zonaTuristica}
+            horarioIda={horarioIda}
+            horarioRetorno={horarioRetorno}
+            climaSenamhi={climaSenamhi}
+            preferenciasSeleccionadas={activeItinerario?.iti_preferencias_seleccionadas || ['naturaleza']}
+          />
+        );
+      })()}
     </div>
   );
 }

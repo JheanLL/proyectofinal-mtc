@@ -82,7 +82,13 @@ export default function AdminLoginModal() {
       setTimeout(() => {
         setIsSuccess(false);
         closeAuthModal();
-        router.push('/admin');
+        if (user.role === 'travel_group') {
+          router.push('/admin/zonas');
+        } else if (user.role === 'perurail') {
+          router.push('/admin/horarios');
+        } else {
+          router.push('/admin');
+        }
       }, 600);
     } catch (err: any) {
       setIsLoading(false);

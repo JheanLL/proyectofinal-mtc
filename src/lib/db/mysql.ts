@@ -365,9 +365,9 @@ export async function initAivenDatabase() {
       await execute(`
         INSERT INTO tbl_usuario_sistema (usu_email, usu_password_hash, usu_rol, usu_nombre)
         VALUES 
-        ('admin@mtc.gob.pe', 'scrypt:admin123_hash', 'ADMIN', 'Administrador General MTC'),
-        ('operaciones@travelgroup.pe', 'scrypt:travel123_hash', 'TRAVEL_GROUP', 'Gestor Travel Group Perú'),
-        ('logistica@perurail.com', 'scrypt:perurail123_hash', 'PERURAIL', 'Coordinador PeruRail');
+        ('admin@mtc.gob.pe', '$2b$10$.6Wq7zotY1GOnWyh9bt6COrSUGJoufV1LXJ6Vrbt0hfV2nv0qYDZ2', 'ADMIN', 'Administrador General MTC'),
+        ('operaciones@travelgroup.pe', '$2b$10$QxXVAJBC5h0LURn.lkxY8OeNw86UoJfdAbvy9sXJ/UUg2j2Schsse', 'TRAVEL_GROUP', 'Gestor Travel Group Perú'),
+        ('logistica@perurail.com', '$2b$10$jcbgDL3H6Yw96y04RSoeHOKYw2i9vsxTC58yIps4G4rUuXgVFxGA2', 'PERURAIL', 'Coordinador PeruRail');
       `);
     }
 

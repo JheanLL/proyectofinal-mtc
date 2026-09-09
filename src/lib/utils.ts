@@ -58,7 +58,12 @@ export function formatDistance(meters: number): string {
 
 export function formatDateSpanish(dateStr: string): string {
   try {
-    const date = new Date(dateStr);
+    if (!dateStr) return '';
+    // Si dateStr viene en formato YYYY-MM-DD sin hora, agregamos T12:00:00 para evitar desplazamiento por zona horaria UTC
+    const safeDateStr = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+      ? `${dateStr}T12:00:00`
+      : (dateStr.includes(' ') && !dateStr.includes('T') ? dateStr.replace(' ', 'T') : dateStr);
+    const date = new Date(safeDateStr);
     return new Intl.DateTimeFormat('es-PE', {
       weekday: 'long',
       year: 'numeric',
@@ -67,5 +72,21 @@ export function formatDateSpanish(dateStr: string): string {
     }).format(date);
   } catch {
     return dateStr;
+  }
+}
+
+export function formatDateShortSpanish(dateStr?: string | Date | null): string {
+  try {
+    if (!dateStr) return new Date().toLocaleDateString('es-PE');
+    const safeDateStr = typeof dateStr === 'string'
+      ? (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+          ? `${dateStr}T12:00:00`
+          : (dateStr.includes(' ') && !dateStr.includes('T') ? dateStr.replace(' ', 'T') : dateStr))
+      : dateStr;
+    const date = new Date(safeDateStr);
+    if (isNaN(date.getTime())) return String(dateStr).split('T')[0];
+    return date.toLocaleDateString('es-PE');
+  } catch {
+    return new Date().toLocaleDateString('es-PE');
   }
 }

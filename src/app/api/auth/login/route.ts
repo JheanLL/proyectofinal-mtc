@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query, logAuditoria } from '@/lib/db/mysql';
-import { verifyPassword, signJwtToken, SessionUser } from '@/lib/auth';
+import { query, execute, logAuditoria } from '@/lib/db/mysql';
+import { verifyPassword, hashPassword, signJwtToken, SessionUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // Resolver posibles alias a la cuenta canónica registrada en BD
     const canonicalEmail = ALIAS_MAP[rawEmail] || rawEmail;
 
-    // Consultar usuario en tbl_usuario_sistema
+    // Consultar usuario en tbl_usuario_sistema (Single Source of Truth en MySQL)
     const rows = await query<any>(
       `SELECT usu_id, usu_email, usu_password_hash, usu_rol, usu_nombre, usu_activo 
        FROM tbl_usuario_sistema 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar contraseña
+    // Validar contraseña estrictamente con Bcrypt
     const isValid = await verifyPassword(password, user.usu_password_hash);
     if (!isValid) {
       return NextResponse.json(
