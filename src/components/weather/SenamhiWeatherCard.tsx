@@ -109,6 +109,39 @@ export default function SenamhiWeatherCard({ clima: initialClima, estacion, comp
     );
   }
 
+  const formatWeatherTimestamp = (ts?: string) => {
+    if (!ts) return 'Reciente (Hora Perú)';
+    if (ts.includes('(Hora Perú)')) return ts;
+
+    // Si viene con formato UTC como "01:45:04 p. m. (En tiempo real)"
+    if (ts.includes('(En tiempo real)')) {
+      const match = ts.match(/(\d{1,2}):(\d{2}):(\d{2})/);
+      if (match) {
+        let h = parseInt(match[1], 10);
+        const m = match[2];
+        const s = match[3];
+        if (ts.toLowerCase().includes('p') && h < 12) h += 12;
+        const peruH = (h - 5 + 24) % 24;
+        const ampm = peruH >= 12 ? 'p. m.' : 'a. m.';
+        const displayH = (peruH % 12 || 12).toString().padStart(2, '0');
+        return `${displayH}:${m}:${s} ${ampm} (Hora Perú)`;
+      }
+    }
+
+    const d = new Date(ts);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleTimeString('es-PE', {
+        timeZone: 'America/Lima',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      }) + ' (Hora Perú)';
+    }
+
+    return ts;
+  };
+
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
       {/* Header */}
@@ -219,7 +252,7 @@ export default function SenamhiWeatherCard({ clima: initialClima, estacion, comp
         {/* Footer timestamp with high contrast */}
         <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-semibold flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
           <span>{clima.cli_fuente_senamhi}</span>
-          <span>Actualizado: {clima.cli_fecha_actualizacion}</span>
+          <span>Actualizado: {formatWeatherTimestamp(clima.cli_fecha_actualizacion)}</span>
         </div>
       </div>
     </div>
