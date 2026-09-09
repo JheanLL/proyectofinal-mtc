@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchLiveWeatherForStation, fetchAllLiveWeathers, getWeatherFromDatabase } from '@/lib/weather';
+import { fetchLiveWeatherForStation, fetchAllLiveWeathers, getWeatherFromDatabase, saveStationWeatherToDatabase } from '@/lib/weather';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -32,9 +32,14 @@ export async function GET(request: NextRequest) {
   if (estacionId) {
     const liveWeather = await fetchLiveWeatherForStation(estacionId, isRefresh);
     if (liveWeather) {
+      // Si fue consulta manual ("Consultar API"), persistir en Aiven MySQL para que el siguiente usuario la aproveche
+      if (isRefresh) {
+        await saveStationWeatherToDatabase(liveWeather);
+      }
+
       return NextResponse.json({
         success: true,
-        fuente: 'Open-Meteo / SENAMHI (En Vivo)',
+        fuente: isRefresh ? 'Open-Meteo / SENAMHI (En Vivo y Persistido en BD)' : 'Open-Meteo / SENAMHI (En Vivo)',
         data: liveWeather,
         timestamp: new Date().toISOString(),
       }, { headers });
