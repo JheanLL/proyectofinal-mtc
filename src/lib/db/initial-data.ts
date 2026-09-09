@@ -1003,8 +1003,8 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
       recomendacion: 'Poncho impermeable y calzado de trekking.',
     },
     cli_recomendacion_ropa: ['Ropa ligera transpirable', 'Poncho impermeable para lluvia', 'Calzado antideslizante para caminata', 'Botella de agua recargable'],
-    cli_fuente_senamhi: 'SENAMHI EMA Cusco (Satelital En Vivo)',
-    cli_fecha_actualizacion: 'Sincronizado con Base de Datos',
+    cli_fuente_senamhi: 'Open-Meteo / SENAMHI',
+    cli_fecha_actualizacion: 'Sincronizado (Hora Perú)',
   },
   est_02: {
     cli_id: 'cli_est_02',
@@ -1024,8 +1024,8 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
       recomendacion: 'Poncho impermeable y calzado de trekking.',
     },
     cli_recomendacion_ropa: ['Ropa ligera transpirable', 'Poncho impermeable para lluvia', 'Calzado antideslizante para caminata', 'Botella de agua recargable'],
-    cli_fuente_senamhi: 'SENAMHI EMA Poroy (Satelital En Vivo)',
-    cli_fecha_actualizacion: 'Sincronizado con Base de Datos',
+    cli_fuente_senamhi: 'Open-Meteo / SENAMHI',
+    cli_fecha_actualizacion: 'Sincronizado (Hora Perú)',
   },
   est_03: {
     cli_id: 'cli_est_03',
@@ -1045,8 +1045,8 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
       recomendacion: 'Poncho impermeable y calzado de trekking.',
     },
     cli_recomendacion_ropa: ['Ropa ligera transpirable', 'Poncho impermeable para lluvia', 'Calzado antideslizante para caminata', 'Botella de agua recargable'],
-    cli_fuente_senamhi: 'SENAMHI EMA Ollantaytambo (Satelital En Vivo)',
-    cli_fecha_actualizacion: 'Sincronizado con Base de Datos',
+    cli_fuente_senamhi: 'Open-Meteo / SENAMHI',
+    cli_fecha_actualizacion: 'Sincronizado (Hora Perú)',
   },
   est_04: {
     cli_id: 'cli_est_04',
@@ -1066,8 +1066,8 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
       recomendacion: 'Poncho impermeable y calzado de trekking.',
     },
     cli_recomendacion_ropa: ['Ropa ligera transpirable', 'Poncho impermeable para lluvia', 'Calzado antideslizante para caminata', 'Botella de agua recargable'],
-    cli_fuente_senamhi: 'SENAMHI EMA Machu Picchu Pueblo (Satelital En Vivo)',
-    cli_fecha_actualizacion: 'Sincronizado con Base de Datos',
+    cli_fuente_senamhi: 'Open-Meteo / SENAMHI',
+    cli_fecha_actualizacion: 'Sincronizado (Hora Perú)',
   },
   est_05: {
     cli_id: 'cli_est_05',
@@ -1087,8 +1087,8 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
       recomendacion: 'Poncho impermeable y calzado de trekking.',
     },
     cli_recomendacion_ropa: ['Ropa ligera transpirable', 'Poncho impermeable para lluvia', 'Calzado antideslizante para caminata', 'Botella de agua recargable'],
-    cli_fuente_senamhi: 'SENAMHI EMA Urubamba (Satelital En Vivo)',
-    cli_fecha_actualizacion: 'Sincronizado con Base de Datos',
+    cli_fuente_senamhi: 'Open-Meteo / SENAMHI',
+    cli_fecha_actualizacion: 'Sincronizado (Hora Perú)',
   },
   est_06: {
     cli_id: 'cli_est_06',
@@ -1108,8 +1108,8 @@ export const INITIAL_PRONOSTICOS_CLIMA: Record<string, TblPronosticoClima> = {
       recomendacion: 'Poncho impermeable y calzado de trekking.',
     },
     cli_recomendacion_ropa: ['Ropa ligera transpirable', 'Poncho impermeable para lluvia', 'Calzado antideslizante para caminata', 'Botella de agua recargable'],
-    cli_fuente_senamhi: 'SENAMHI EMA Puno (Satelital En Vivo)',
-    cli_fecha_actualizacion: 'Sincronizado con Base de Datos',
+    cli_fuente_senamhi: 'Open-Meteo / SENAMHI',
+    cli_fecha_actualizacion: 'Sincronizado (Hora Perú)',
   }
 };
 

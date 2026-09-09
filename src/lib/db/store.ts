@@ -251,8 +251,14 @@ export const getClimaByEstacion = (estacionId: string): TblPronosticoClima => {
       recomendacion: 'Caminata a pie sin restricciones climáticas.',
     },
     cli_recomendacion_ropa: ['Ropa cómoda', 'Protector solar', 'Agua'],
-    cli_fuente_senamhi: 'SENAMHI - Servicio Nacional de Meteorología e Hidrología',
-    cli_fecha_actualizacion: new Date().toLocaleString(),
+    cli_fuente_senamhi: 'Open-Meteo / SENAMHI',
+    cli_fecha_actualizacion: new Date().toLocaleTimeString('es-PE', { 
+      timeZone: 'America/Lima', 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    }) + ' (Hora Perú)',
   };
 };
 

@@ -78,8 +78,14 @@ export async function fetchLiveWeatherForStation(estacionId: string, forceFresh:
         'Zapatillas o calzado de caminata con buena tracción',
         'Botella de agua recargable'
       ],
-      cli_fuente_senamhi: `SENAMHI EMA ${estacion.est_ciudad} (API En Vivo)`,
-      cli_fecha_actualizacion: new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' (En tiempo real)',
+      cli_fuente_senamhi: 'Open-Meteo / SENAMHI',
+      cli_fecha_actualizacion: new Date().toLocaleTimeString('es-PE', { 
+        timeZone: 'America/Lima', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: true 
+      }) + ' (Hora Perú)',
     };
   } catch (err) {
     console.error(`Error fetching live weather for ${estacionId}:`, err);
@@ -100,7 +106,13 @@ export function formatDbWeatherRow(row: any): TblPronosticoClima {
   let fechaActualizacion = 'Reciente';
   if (row.cli_fecha_actualizacion) {
     const d = new Date(row.cli_fecha_actualizacion);
-    fechaActualizacion = d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) + ' (Sincronizado)';
+    fechaActualizacion = d.toLocaleTimeString('es-PE', { 
+      timeZone: 'America/Lima', 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    }) + ' (Hora Perú)';
   }
 
   return {
@@ -119,7 +131,7 @@ export function formatDbWeatherRow(row: any): TblPronosticoClima {
     cli_indice_uv: Number(row.cli_indice_uv) || 8,
     cli_alerta_meteorologica: alerta || { nivel: 'Verde', mensaje: 'Condiciones meteorológicas normales.', recomendacion: 'Caminata a pie sin restricciones.' },
     cli_recomendacion_ropa: Array.isArray(ropa) ? ropa : ['Ropa ligera cómoda', 'Protector solar'],
-    cli_fuente_senamhi: row.cli_fuente_senamhi || 'SENAMHI / Red Meteorológica',
+    cli_fuente_senamhi: 'Open-Meteo / SENAMHI',
     cli_fecha_actualizacion: fechaActualizacion,
   };
 }

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     if (dbWeather) {
       return NextResponse.json({
         success: true,
-        fuente: 'Aiven MySQL (tbl_pronostico_clima)',
+        fuente: 'Open-Meteo / SENAMHI',
         data: dbWeather,
         timestamp: new Date().toISOString(),
       }, { headers });
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        fuente: isRefresh ? 'Open-Meteo / SENAMHI (En Vivo y Persistido en BD)' : 'Open-Meteo / SENAMHI (En Vivo)',
+        fuente: 'Open-Meteo / SENAMHI',
         data: liveWeather,
         timestamp: new Date().toISOString(),
       }, { headers });
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    fuente: isRefresh ? 'Open-Meteo / SENAMHI (En Vivo)' : 'Aiven MySQL / SENAMHI',
+    fuente: 'Open-Meteo / SENAMHI',
     data: weatherMap,
     timestamp: new Date().toISOString(),
   }, { headers });
