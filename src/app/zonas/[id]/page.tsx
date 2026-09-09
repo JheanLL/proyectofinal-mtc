@@ -60,6 +60,16 @@ export default function ZonaDetailPage() {
         if (currentEstacion) {
           setEstacion(currentEstacion);
           setClima(getClimaByEstacion(currentEstacion.est_id));
+
+          // Cargar clima sincronizado de la base de datos (tbl_pronostico_clima vía /api/senamhi)
+          fetch(`/api/senamhi?estacionId=${currentEstacion.est_id}`)
+            .then(r => r.json())
+            .then(json => {
+              if (isMounted && json.success && json.data) {
+                setClima(json.data);
+              }
+            })
+            .catch(() => {});
         }
         setIsLoading(false);
       }

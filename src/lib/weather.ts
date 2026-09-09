@@ -87,7 +87,75 @@ export async function fetchLiveWeatherForStation(estacionId: string, forceFresh:
   }
 }
 
+export function formatDbWeatherRow(row: any): TblPronosticoClima {
+  let alerta = row.cli_alerta_meteorologica;
+  if (typeof alerta === 'string') {
+    try { alerta = JSON.parse(alerta); } catch {}
+  }
+  let ropa = row.cli_recomendacion_ropa;
+  if (typeof ropa === 'string') {
+    try { ropa = JSON.parse(ropa); } catch {}
+  }
+
+  let fechaActualizacion = 'Reciente';
+  if (row.cli_fecha_actualizacion) {
+    const d = new Date(row.cli_fecha_actualizacion);
+    fechaActualizacion = d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }) + ' (Sincronizado)';
+  }
+
+  return {
+    cli_id: row.cli_id,
+    cli_estacion_id: row.cli_estacion_id,
+    cli_fecha: typeof row.cli_fecha === 'string' 
+      ? row.cli_fecha 
+      : (row.cli_fecha?.toISOString ? row.cli_fecha.toISOString().split('T')[0] : '2026-09-09'),
+    cli_temp_min_c: Math.round(Number(row.cli_temp_min_c) || 8),
+    cli_temp_max_c: Math.round(Number(row.cli_temp_max_c) || 22),
+    cli_temp_actual_c: Math.round(Number(row.cli_temp_actual_c) || 16),
+    cli_condicion_cielo: row.cli_condicion_cielo || 'Parcialmente Nublado',
+    cli_prob_lluvia_pct: Number(row.cli_prob_lluvia_pct) || 0,
+    cli_humedad_pct: Number(row.cli_humedad_pct) || 50,
+    cli_viento_kmh: Math.round(Number(row.cli_viento_kmh) || 10),
+    cli_indice_uv: Number(row.cli_indice_uv) || 8,
+    cli_alerta_meteorologica: alerta || { nivel: 'Verde', mensaje: 'Condiciones meteorológicas normales.', recomendacion: 'Caminata a pie sin restricciones.' },
+    cli_recomendacion_ropa: Array.isArray(ropa) ? ropa : ['Ropa ligera cómoda', 'Protector solar'],
+    cli_fuente_senamhi: row.cli_fuente_senamhi || 'SENAMHI / Red Meteorológica',
+    cli_fecha_actualizacion: fechaActualizacion,
+  };
+}
+
+export async function getWeatherFromDatabase(estacionId?: string): Promise<TblPronosticoClima | Record<string, TblPronosticoClima> | null> {
+  try {
+    const { query } = await import('@/lib/db/mysql');
+    if (estacionId) {
+      const rows = await query<any>('SELECT * FROM tbl_pronostico_clima WHERE cli_estacion_id = ? LIMIT 1', [estacionId]);
+      if (rows && rows.length > 0) {
+        return formatDbWeatherRow(rows[0]);
+      }
+    } else {
+      const rows = await query<any>('SELECT * FROM tbl_pronostico_clima');
+      if (rows && rows.length > 0) {
+        const result: Record<string, TblPronosticoClima> = {};
+        for (const r of rows) {
+          result[r.cli_estacion_id] = formatDbWeatherRow(r);
+        }
+        return result;
+      }
+    }
+  } catch (err) {
+    console.warn('[Weather DB Read Warning]:', err);
+  }
+  return null;
+}
+
 export async function fetchAllLiveWeathers(forceFresh: boolean = false): Promise<Record<string, TblPronosticoClima>> {
+  if (!forceFresh) {
+    const dbData = await getWeatherFromDatabase();
+    if (dbData && typeof dbData === 'object' && Object.keys(dbData).length > 0) {
+      return dbData as Record<string, TblPronosticoClima>;
+    }
+  }
+
   const promises = INITIAL_ESTACIONES.map(async (est) => {
     const weather = await fetchLiveWeatherForStation(est.est_id, forceFresh);
     return [est.est_id, weather || INITIAL_PRONOSTICOS_CLIMA[est.est_id]];

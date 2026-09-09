@@ -26,7 +26,7 @@ const STORAGE_KEYS = {
   ESTACIONES: 'mtc_tbl_estaciones_v1',
   ZONAS: 'mtc_tbl_zonas_v1',
   HORARIOS: 'mtc_tbl_horarios_v1',
-  CLIMA: 'mtc_tbl_clima_v1',
+  CLIMA: 'mtc_tbl_clima_v2',
   ITINERARIOS: 'mtc_tbl_itinerarios_v1',
   INTEGRACIONES: 'mtc_tbl_integraciones_v1',
 };
@@ -258,6 +258,16 @@ export const getClimaByEstacion = (estacionId: string): TblPronosticoClima => {
 
 export const getAllClimas = (): Record<string, TblPronosticoClima> => {
   return getFromStorage<Record<string, TblPronosticoClima>>(STORAGE_KEYS.CLIMA, INITIAL_PRONOSTICOS_CLIMA);
+};
+
+export const syncClimaToStorage = (clima: TblPronosticoClima): void => {
+  const current = getAllClimas();
+  const updated = { ...current, [clima.cli_estacion_id]: clima };
+  saveToStorage(STORAGE_KEYS.CLIMA, updated);
+};
+
+export const syncAllClimasToStorage = (climas: Record<string, TblPronosticoClima>): void => {
+  saveToStorage(STORAGE_KEYS.CLIMA, climas);
 };
 
 // 5. GESTIÓN DE PREFERENCIAS
